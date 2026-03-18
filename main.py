@@ -25,7 +25,7 @@ os.makedirs('backups', exist_ok=True)
 # CONFIGURACIÓN GLOBAL
 # ============================================
 
-VERSION = "3.3.0"
+VERSION = "3.3.1"
 PREFIX = "!"
 start_time = datetime.now()
 reconnect_attempts = 0
@@ -567,8 +567,6 @@ async def cmd_ayuda(ctx):
         `!pagarcomisiones` - Ver comisiones
         `!confirmarpago [@usuario]` - Pagar comisiones
         `!reporte` - Reporte de rifa
-        `!setnivel` - Configurar nivel (CEO)
-        `!verniveles` - Ver niveles
         """
         embed.add_field(name="🎯 **DIRECTORES**", value=director, inline=False)
     
@@ -581,6 +579,7 @@ async def cmd_ayuda(ctx):
         `!setcashback [%]` - Configurar cashback
         `!pagarcashback` - Pagar cashback
         `!resetcashback` - Resetear cashback
+        `!setnivel` - Configurar niveles
         `!estadisticas` - Estadísticas globales
         `!auditoria` - Ver transacciones
         `!exportar` - Exportar a CSV
@@ -625,8 +624,8 @@ async def cmd_rifa(ctx):
         description=f"**{rifa_activa['premio']}**",
         color=config.COLORS['primary']
     )
-    embed.add_field(name="🏆 Premio", value=f"${rifa_activa['valor_premio']:,}", inline=True)
-    embed.add_field(name="💰 Precio", value=f"${rifa_activa['precio_boleto']:,}", inline=True)
+    embed.add_field(name="🏆 Premio", value=f"${rifa_activa['valor_premio']}", inline=True)
+    embed.add_field(name="💰 Precio", value=f"${rifa_activa['precio_boleto']}", inline=True)
     embed.set_footer(text="Usa !comprarrandom para participar")
     
     await ctx.send(embed=embed)
@@ -792,7 +791,7 @@ async def cmd_ranking(ctx):
         medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
         embed.add_field(
             name=f"{medalla} {u['nombre']}",
-            value=f"{u['total_compras']} boletos | ${u['total_gastado']:,}",
+            value=f"{u['total_compras']} boletos | ${u['total_gastado']}",
             inline=False
         )
     
@@ -970,7 +969,7 @@ async def cmd_set_ref_descuento(ctx, porcentaje: int):
     await ctx.send(embed=embeds.crear_embed_exito(f"Descuento: {porcentaje}%"))
 
 # ============================================
-# SISTEMA DE FIDELIZACIÓN
+# SISTEMA DE FIDELIZACIÓN (CORREGIDO)
 # ============================================
 
 @bot.command(name="nivel")
@@ -985,18 +984,18 @@ async def cmd_nivel(ctx):
         ''', (str(ctx.author.id),))
         data = await cursor.fetchone()
         
+        if not data:
+            await ctx.send(embed=embeds.crear_embed_info("Sin compras", "Aún no tienes historial"))
+            return
+        
         cursor = await db.execute('''
             SELECT * FROM fidelizacion_config WHERE nivel = ?
-        ''', (data['nivel'] if data else 'BRONCE',))
+        ''', (data['nivel'],))
         beneficios = await cursor.fetchone()
-    
-    if not data:
-        await ctx.send(embed=embeds.crear_embed_info("Sin compras", "Aún no tienes historial"))
-        return
     
     embed = discord.Embed(
         title=f"🏆 Nivel: {data['nivel']}",
-        description=f"Gasto total: **${data['gasto_total']:,} VP$**",
+        description=f"Gasto total: **${data['gasto_total']} VP$**",
         color=config.COLORS['primary']
     )
     
@@ -1044,7 +1043,7 @@ async def cmd_top_gastadores(ctx):
         nombre = u['nombre'] or "Usuario"
         embed.add_field(
             name=f"{i}. {nombre}",
-            value=f"Gastado: ${u['gasto_total']:,} | {u['nivel']}",
+            value=f"Gastado: ${u['gasto_total']} | {u['nivel']}",
             inline=False
         )
     
@@ -1080,7 +1079,11 @@ async def cmd_ver_niveles(ctx):
         if n['rifas_exclusivas']:
             beneficios.append(f"✨ Excl")
         
-        rango = f"${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}"
+        # Formato simple sin comas para evitar errores
+        minimo = str(n['gasto_minimo'])
+        maximo = str(n['gasto_maximo']) if n['gasto_maximo'] else '∞'
+        rango = f"${minimo} - ${maximo}"
+        
         texto = f"**Rango:** {rango}\n"
         texto += f"**Beneficios:** {' | '.join(beneficios) if beneficios else 'Ninguno'}"
         
@@ -1117,13 +1120,22 @@ async def cmd_set_nivel(ctx, nivel: str, campo: str, valor: str):
     
     columna = campos_validos[campo]
     
+    try:
+        valor_int = int(valor)
+    except:
+        if campo in ['canal_vip', 'rifas_exclusivas']:
+            valor_int = 1 if valor.lower() in ['si', 'true', '1', 'activo'] else 0
+        else:
+            await ctx.send(embed=embeds.crear_embed_error("Valor debe ser número"))
+            return
+    
     async with aiosqlite.connect('data/rifas.db') as db:
         await db.execute(f'''
             UPDATE fidelizacion_config SET {columna} = ? WHERE nivel = ?
-        ''', (valor, nivel))
+        ''', (valor_int, nivel))
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Nivel {nivel}: {campo} = {valor}"))
+    await ctx.send(embed=embeds.crear_embed_exito(f"Nivel {nivel}: {campo} = {valor_int}"))
 
 # ============================================
 # SISTEMA DE CASHBACK
