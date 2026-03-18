@@ -1,21 +1,59 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import asyncio
 import logging
 import random
 import aiosqlite
 import csv
 import shutil
-from datetime import datetime
+import os
+import sys
+import traceback
+import hashlib
+import time
+from datetime import datetime, timedelta
 import config
 from src.database.database import Database
 import src.utils.embeds as embeds
 
-# Variables globales para confirmaciones
+# Crear carpeta de logs si no existe
+os.makedirs('src/logs', exist_ok=True)
+
+# ============================================
+# CONFIGURACIÓN GLOBAL
+# ============================================
+
+VERSION = "3.2.0"
+PREFIX = "!"
+start_time = datetime.now()
+reconnect_attempts = 0
+MAX_RECONNECT_ATTEMPTS = 999999
+
+# Variables para sistemas
 reset_pending = None
 reset_user_pending = None
+sorteo_en_curso = False
+sorteo_cancelado = False
 
-# Configurar logging
+# Configuración de sistemas
+REFERIDOS_PORCENTAJE = 10
+REFERIDOS_DESCUENTO = 10
+CASHBACK_PORCENTAJE = 10
+
+# IDs de roles de fidelización
+ROLES_FIDELIZACION = {
+    'BRONCE': 1483720270496661515,
+    'PLATA': 1483720387178139758,
+    'ORO': 1483720490601418822,
+    'PLATINO': 1483720672185155625,
+    'DIAMANTE': 1483720783422296165,
+    'MASTER': 1483721013144584192
+}
+
+# ============================================
+# CONFIGURACIÓN DE LOGGING
+# ============================================
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -26,13 +64,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Intents
+# ============================================
+# INTENTS Y BOT
+# ============================================
+
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-
-# Prefijo del bot
-PREFIX = "!"
 
 class VPRifasBot(commands.Bot):
     def __init__(self):
@@ -41,23 +79,294 @@ class VPRifasBot(commands.Bot):
             intents=intents,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"{PREFIX}ayuda | Rifas VP"
+                name=f"{PREFIX}ayuda | Rifas VP v{VERSION}"
             )
         )
         self.db = Database()
-    
+        self.update_channel_id = 1483378335831560202
+        self.reconnecting = False
+        self.ultimo_heartbeat = datetime.now()
+        
     async def setup_hook(self):
-        logger.info("Iniciando configuración...")
-        await self.db.init_db()
-        logger.info("✅ Base de datos inicializada")
+        logger.info("🚀 Iniciando configuración del bot...")
+        try:
+            await self.db.init_db()
+            await self.init_sistemas_tablas()
+            logger.info("✅ Base de datos inicializada correctamente")
+        except Exception as e:
+            logger.error(f"❌ Error inicializando BD: {e}")
+            traceback.print_exc()
+        
+        self.keep_alive_task.start()
+        self.status_task.start()
+        self.supervivencia_task.start()
+        logger.info("✅ Tareas automáticas iniciadas")
+    
+    async def init_sistemas_tablas(self):
+        """Inicializar tablas para los nuevos sistemas"""
+        async with aiosqlite.connect(self.db.db_path) as db:
+            # Tabla de códigos de referidos
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS referidos_codigos (
+                    usuario_id TEXT PRIMARY KEY,
+                    codigo TEXT UNIQUE NOT NULL,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de relaciones referido-referidor
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS referidos_relaciones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    referido_id TEXT UNIQUE NOT NULL,
+                    referidor_id TEXT NOT NULL,
+                    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    primera_compra BOOLEAN DEFAULT 0,
+                    total_compras INTEGER DEFAULT 0,
+                    total_gastado INTEGER DEFAULT 0,
+                    comisiones_generadas INTEGER DEFAULT 0
+                )
+            ''')
+            
+            # Tabla de comisiones pagadas
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS referidos_comisiones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    referidor_id TEXT NOT NULL,
+                    referido_id TEXT NOT NULL,
+                    compra_id INTEGER,
+                    monto_compra INTEGER NOT NULL,
+                    porcentaje INTEGER NOT NULL,
+                    comision INTEGER NOT NULL,
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de configuración de referidos
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS referidos_config (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    porcentaje_comision INTEGER DEFAULT 10,
+                    porcentaje_descuento INTEGER DEFAULT 10,
+                    descuento_activo BOOLEAN DEFAULT 1
+                )
+            ''')
+            
+            await db.execute('''
+                INSERT OR IGNORE INTO referidos_config (id, porcentaje_comision, porcentaje_descuento)
+                VALUES (1, 10, 10)
+            ''')
+            
+            # Tabla de fidelización por gasto
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS fidelizacion (
+                    usuario_id TEXT PRIMARY KEY,
+                    gasto_total INTEGER DEFAULT 0,
+                    nivel TEXT DEFAULT 'BRONCE',
+                    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de configuración de niveles
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS fidelizacion_config (
+                    nivel TEXT PRIMARY KEY,
+                    gasto_minimo INTEGER NOT NULL,
+                    gasto_maximo INTEGER,
+                    descuento INTEGER DEFAULT 0,
+                    boletos_gratis_por_cada INTEGER DEFAULT 0,
+                    cantidad_boletos_gratis INTEGER DEFAULT 0,
+                    acceso_anticipado_horas INTEGER DEFAULT 0,
+                    canal_vip BOOLEAN DEFAULT 0,
+                    rifas_exclusivas BOOLEAN DEFAULT 0
+                )
+            ''')
+            
+            niveles_config = [
+                ('BRONCE', 0, 499999, 0, 0, 0, 0, 0, 0),
+                ('PLATA', 500000, 999999, 5, 0, 0, 0, 0, 0),
+                ('ORO', 1000000, 2499999, 10, 10, 2, 0, 0, 0),
+                ('PLATINO', 2500000, 4999999, 15, 10, 2, 24, 0, 0),
+                ('DIAMANTE', 5000000, 9999999, 20, 10, 3, 24, 1, 0),
+                ('MASTER', 10000000, None, 25, 10, 4, 48, 1, 1)
+            ]
+            
+            for nivel in niveles_config:
+                await db.execute('''
+                    INSERT OR REPLACE INTO fidelizacion_config 
+                    (nivel, gasto_minimo, gasto_maximo, descuento, boletos_gratis_por_cada, 
+                     cantidad_boletos_gratis, acceso_anticipado_horas, canal_vip, rifas_exclusivas)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', nivel)
+            
+            # Tabla de cashback
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS cashback (
+                    usuario_id TEXT PRIMARY KEY,
+                    cashback_acumulado INTEGER DEFAULT 0,
+                    cashback_recibido INTEGER DEFAULT 0,
+                    ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de configuración de cashback
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS cashback_config (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    porcentaje INTEGER DEFAULT 10,
+                    dia_pago TEXT DEFAULT 'LUNES',
+                    activo BOOLEAN DEFAULT 1
+                )
+            ''')
+            
+            await db.execute('''
+                INSERT OR IGNORE INTO cashback_config (id, porcentaje, dia_pago)
+                VALUES (1, 10, 'LUNES')
+            ''')
+            
+            await db.commit()
+        
+        logger.info("✅ Tablas de sistemas inicializadas")
     
     async def on_ready(self):
         logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
         logger.info(f"🌐 En {len(self.guilds)} servidores")
+        
+        global reconnect_attempts
+        reconnect_attempts = 0
+        self.reconnecting = False
+        
+        await self.enviar_log_sistema(
+            "🟢 **BOT INICIADO**", 
+            f"Bot iniciado correctamente\n"
+            f"Versión: {VERSION}\n"
+            f"Sistemas: Referidos, Fidelización, Cashback\n"
+            f"Servidores: {len(self.guilds)}"
+        )
+    
+    async def on_disconnect(self):
+        logger.warning("⚠️ Bot desconectado")
+        self.reconnecting = True
+        await self.enviar_log_sistema(
+            "🔴 **BOT DESCONECTADO**", 
+            "El bot se ha desconectado. Intentando reconectar automáticamente..."
+        )
+    
+    async def on_resumed(self):
+        logger.info("🔄 Bot reconectado")
+        self.reconnecting = False
+        await self.enviar_log_sistema(
+            "🟢 **BOT RECONECTADO**", 
+            "Conexión restablecida exitosamente"
+        )
+    
+    async def on_error(self, event_method, *args, **kwargs):
+        logger.error(f"Error en {event_method}: {traceback.format_exc()}")
+        await self.enviar_log_sistema(
+            "⚠️ **ERROR DETECTADO**", 
+            f"Error en {event_method}\nVer logs para más detalles"
+        )
+    
+    async def enviar_log_sistema(self, titulo, descripcion):
+        """Envía logs del sistema al canal de actualizaciones"""
+        try:
+            canal = self.get_channel(self.update_channel_id)
+            if not canal:
+                for guild in self.guilds:
+                    canal = guild.get_channel(self.update_channel_id)
+                    if canal:
+                        break
+            
+            if not canal:
+                logger.warning(f"No se encontró el canal {self.update_channel_id}")
+                return
+            
+            embed = discord.Embed(
+                title=titulo,
+                description=descripcion,
+                color=0x0099FF,
+                timestamp=datetime.now()
+            )
+            embed.set_footer(text=f"Sistema VP Rifas v{VERSION}")
+            
+            await canal.send(embed=embed)
+        except Exception as e:
+            logger.error(f"Error enviando log de sistema: {e}")
+    
+    @tasks.loop(seconds=30)
+    async def keep_alive_task(self):
+        """Tarea que se ejecuta cada 30 segundos para mantener el bot vivo"""
+        try:
+            activities = [
+                f"{PREFIX}ayuda | {len(self.guilds)} servers",
+                f"Rifas VP v{VERSION}",
+                f"{PREFIX}comprarrandom | Activo",
+                f"{len(self.users)} usuarios"
+            ]
+            activity = random.choice(activities)
+            await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
+        except Exception as e:
+            if "closing transport" not in str(e):
+                logger.error(f"Error en keep_alive_task: {e}")
+    
+    @tasks.loop(minutes=5)
+    async def supervivencia_task(self):
+        """Tarea de supervivencia que verifica que todo funciona"""
+        try:
+            if not self.is_ready():
+                logger.warning("⚠️ Bot no está ready, intentando mantener conexión...")
+                return
+            
+            ahora = datetime.now()
+            if (ahora - self.ultimo_heartbeat).total_seconds() > 1800:
+                self.ultimo_heartbeat = ahora
+                uptime = datetime.now() - start_time
+                horas = uptime.total_seconds() // 3600
+                minutos = (uptime.total_seconds() % 3600) // 60
+                
+                await self.enviar_log_sistema(
+                    "💓 **HEARTBEAT**", 
+                    f"Bot activo por {int(horas)}h {int(minutos)}m\n"
+                    f"Versión: {VERSION}\n"
+                    f"Servidores: {len(self.guilds)}"
+                )
+        except Exception as e:
+            logger.error(f"Error en supervivencia_task: {e}")
+    
+    @tasks.loop(minutes=60)
+    async def status_task(self):
+        """Tarea que se ejecuta cada hora para reportar estado detallado"""
+        try:
+            uptime = datetime.now() - start_time
+            horas = uptime.total_seconds() // 3600
+            minutos = (uptime.total_seconds() % 3600) // 60
+            
+            async with aiosqlite.connect(self.db.db_path) as db:
+                cursor = await db.execute('SELECT COUNT(*) FROM rifas')
+                total_rifas = (await cursor.fetchone())[0]
+                
+                cursor = await db.execute('SELECT COUNT(*) FROM boletos')
+                total_boletos = (await cursor.fetchone())[0]
+                
+                cursor = await db.execute('SELECT COUNT(*) FROM clientes')
+                total_clientes = (await cursor.fetchone())[0]
+            
+            await self.enviar_log_sistema(
+                "📊 **REPORTE HORARIO**", 
+                f"**Uptime:** {int(horas)}h {int(minutos)}m\n"
+                f"**Rifas:** {total_rifas}\n"
+                f"**Boletos vendidos:** {total_boletos}\n"
+                f"**Clientes:** {total_clientes}"
+            )
+        except Exception as e:
+            logger.error(f"Error en status_task: {e}")
 
 bot = VPRifasBot()
 
-# ===== FUNCIÓN DE LOGS =====
+# ============================================
+# FUNCIONES AUXILIARES
+# ============================================
+
 async def enviar_log(ctx, accion, detalles):
     """Envía un log al canal de logs"""
     try:
@@ -77,8 +386,6 @@ async def enviar_log(ctx, accion, detalles):
         await canal_logs.send(embed=embed)
     except Exception as e:
         print(f"Error enviando log: {e}")
-
-# ===== FUNCIONES DE VERIFICACIÓN =====
 
 async def verificar_canal(ctx):
     """Verifica si el comando se ejecuta en un canal de la categoría de rifas"""
@@ -124,69 +431,340 @@ async def check_ceo(ctx):
         return False
     return tiene_rol(member, config.ROLES['CEO'])
 
-# ===== COMANDOS DE USUARIO =====
+async def generar_codigo_unico(usuario_id):
+    """Genera un código único de referido basado en el ID del usuario"""
+    hash_obj = hashlib.md5(usuario_id.encode())
+    hash_hex = hash_obj.hexdigest()[:8].upper()
+    return f"VP-{hash_hex}"
 
-@bot.command(name="rifa")
-async def cmd_rifa(ctx):
-    """Ver la rifa activa actual"""
+async def obtener_o_crear_codigo(usuario_id, usuario_nombre):
+    """Obtiene el código de referido de un usuario o crea uno nuevo"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT codigo FROM referidos_codigos WHERE usuario_id = ?
+        ''', (usuario_id,))
+        result = await cursor.fetchone()
+        
+        if result:
+            return result[0]
+        else:
+            codigo = await generar_codigo_unico(usuario_id)
+            await db.execute('''
+                INSERT INTO referidos_codigos (usuario_id, codigo)
+                VALUES (?, ?)
+            ''', (usuario_id, codigo))
+            await db.commit()
+            return codigo
+
+async def obtener_nivel_por_gasto(gasto_total):
+    """Determina el nivel de fidelización según el gasto total"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT nivel FROM fidelizacion_config
+            WHERE gasto_minimo <= ? AND (gasto_maximo >= ? OR gasto_maximo IS NULL)
+            ORDER BY gasto_minimo DESC LIMIT 1
+        ''', (gasto_total, gasto_total))
+        result = await cursor.fetchone()
+        
+        if result:
+            return result[0]
+        return 'BRONCE'
+
+async def actualizar_fidelizacion(usuario_id, monto_compra):
+    """Actualiza el gasto total y el nivel de fidelización de un usuario"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT gasto_total FROM fidelizacion WHERE usuario_id = ?
+        ''', (usuario_id,))
+        result = await cursor.fetchone()
+        
+        if result:
+            nuevo_gasto = result[0] + monto_compra
+            await db.execute('''
+                UPDATE fidelizacion SET gasto_total = ?, fecha_actualizacion = CURRENT_TIMESTAMP
+                WHERE usuario_id = ?
+            ''', (nuevo_gasto, usuario_id))
+        else:
+            nuevo_gasto = monto_compra
+            await db.execute('''
+                INSERT INTO fidelizacion (usuario_id, gasto_total)
+                VALUES (?, ?)
+            ''', (usuario_id, nuevo_gasto))
+        
+        nuevo_nivel = await obtener_nivel_por_gasto(nuevo_gasto)
+        
+        await db.execute('''
+            UPDATE fidelizacion SET nivel = ? WHERE usuario_id = ?
+        ''', (nuevo_nivel, usuario_id))
+        
+        await db.commit()
+        return nuevo_nivel
+
+async def aplicar_cashback(usuario_id, monto_compra):
+    """Aplica cashback a un usuario"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT porcentaje FROM cashback_config WHERE id = 1
+        ''')
+        config_cb = await cursor.fetchone()
+        porcentaje = config_cb[0] if config_cb else 10
+        
+        cashback = int(monto_compra * porcentaje / 100)
+        
+        await db.execute('''
+            INSERT INTO cashback (usuario_id, cashback_acumulado)
+            VALUES (?, ?)
+            ON CONFLICT(usuario_id) DO UPDATE SET
+                cashback_acumulado = cashback_acumulado + ?,
+                ultima_actualizacion = CURRENT_TIMESTAMP
+        ''', (usuario_id, cashback, cashback))
+        
+        await db.commit()
+        return cashback
+
+async def obtener_descuento_usuario(usuario_id):
+    """Obtiene el porcentaje de descuento de un usuario según su nivel"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT f.nivel, fc.descuento 
+            FROM fidelizacion f
+            JOIN fidelizacion_config fc ON f.nivel = fc.nivel
+            WHERE f.usuario_id = ?
+        ''', (usuario_id,))
+        result = await cursor.fetchone()
+        
+        if result:
+            return result[1]
+        return 0
+
+async def obtener_beneficios_nivel(nivel):
+    """Obtiene los beneficios de un nivel específico"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT * FROM fidelizacion_config WHERE nivel = ?
+        ''', (nivel,))
+        return await cursor.fetchone()
+
+# ============================================
+# SISTEMA DE REFERIDOS (MODIFICADO: UN SOLO CÓDIGO POR USUARIO)
+# ============================================
+
+@bot.command(name="codigo")
+async def cmd_codigo(ctx):
+    """Muestra tu código de referido único"""
     if not await verificar_canal(ctx):
         return
     
-    rifa_activa = await bot.db.get_rifa_activa()
+    codigo = await obtener_o_crear_codigo(str(ctx.author.id), ctx.author.name)
     
-    if not rifa_activa:
-        await ctx.send(embed=embeds.crear_embed_error("No hay ninguna rifa activa en este momento."))
-        return
-    
-    vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
-    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
-    
-    embed = embeds.crear_embed_rifa(rifa_activa, vendidos, disponibles)
-    await ctx.send(embed=embed)
-
-@bot.command(name="comprar")
-async def cmd_comprar(ctx, numero: int):
-    """Comprar un boleto específico"""
-    if not await verificar_canal(ctx):
-        return
-    
-    rifa_activa = await bot.db.get_rifa_activa()
-    if not rifa_activa:
-        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
-        return
-    
-    if numero < 1 or numero > rifa_activa['total_boletos']:
-        await ctx.send(embed=embeds.crear_embed_error(f"Número inválido. Debe ser entre 1 y {rifa_activa['total_boletos']}"))
-        return
-    
-    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
-    if numero not in disponibles:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ El número {numero} ya no está disponible."))
-        return
-    
-    exito, mensaje = await bot.db.comprar_boleto(
-        rifa_activa['id'],
-        numero,
-        str(ctx.author.id),
-        ctx.author.name,
-        None
+    embed = discord.Embed(
+        title="🔗 **TU CÓDIGO DE REFERIDO**",
+        description=f"`{codigo}`",
+        color=config.COLORS['primary']
     )
     
-    if exito:
-        await ctx.send(embed=embeds.crear_embed_exito(f"✅ ¡Boleto #{numero} comprado!\n\nTotal: ${rifa_activa['precio_boleto']:,}\n\nUn staff confirmará tu pago."))
-        await ctx.send(f"🎟️ **{ctx.author.name}** acaba de comprar el boleto **#{numero}**")
-        await enviar_log(ctx, "🎟️ COMPRA", f"{ctx.author.name} compró el boleto #{numero}")
-    else:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error: {mensaje}"))
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT COUNT(*), SUM(comisiones_generadas) 
+            FROM referidos_relaciones 
+            WHERE referidor_id = ?
+        ''', (str(ctx.author.id),))
+        stats = await cursor.fetchone()
+        total_referidos = stats[0] if stats else 0
+        total_comisiones = stats[1] if stats and stats[1] else 0
+    
+    embed.add_field(name="📊 Tus referidos", value=f"**{total_referidos}** personas", inline=True)
+    embed.add_field(name="💰 Comisiones ganadas", value=f"**{total_comisiones} VP$**", inline=True)
+    embed.add_field(
+        name="🎁 Beneficios", 
+        value=f"• Tú ganas: **{REFERIDOS_PORCENTAJE}%** de todas sus compras\n"
+              f"• Ellos ganan: **{REFERIDOS_DESCUENTO}%** en primera compra",
+        inline=False
+    )
+    
+    embed.set_footer(text="Comparte este código con tus amigos")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="usar")
+async def cmd_usar_codigo(ctx, codigo: str):
+    """Usa un código de referido (solo una vez por usuario)"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        # Verificar si el usuario ya usó un código antes
+        cursor = await db.execute('''
+            SELECT * FROM referidos_relaciones WHERE referido_id = ?
+        ''', (str(ctx.author.id),))
+        ya_tiene_referido = await cursor.fetchone()
+        
+        if ya_tiene_referido:
+            await ctx.send(embed=embeds.crear_embed_error("❌ Ya tienes un referidor registrado. Solo puedes usar un código una vez."))
+            return
+        
+        cursor = await db.execute('''
+            SELECT usuario_id FROM referidos_codigos WHERE codigo = ? AND usuario_id != ?
+        ''', (codigo.upper(), str(ctx.author.id)))
+        referidor = await cursor.fetchone()
+        
+        if not referidor:
+            await ctx.send(embed=embeds.crear_embed_error("❌ Código inválido o no puedes usar tu propio código"))
+            return
+        
+        referidor_id = referidor[0]
+        
+        await db.execute('''
+            INSERT INTO referidos_relaciones (referido_id, referidor_id)
+            VALUES (?, ?)
+        ''', (str(ctx.author.id), referidor_id))
+        
+        await db.commit()
+    
+    embed = discord.Embed(
+        title="✅ **CÓDIGO APLICADO**",
+        description=f"Has usado el código de <@{referidor_id}>",
+        color=config.COLORS['success']
+    )
+    embed.add_field(
+        name="🎁 Beneficios", 
+        value=f"• Tendrás **{REFERIDOS_DESCUENTO}% de descuento** en tu primera compra\n"
+              f"• Tu referidor ganará **{REFERIDOS_PORCENTAJE}%** de tus compras futuras",
+        inline=False
+    )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="misreferidos")
+async def cmd_mis_referidos(ctx):
+    """Muestra la lista de personas que has referido"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT r.referido_id, c.nombre as nombre, 
+                   r.total_compras, r.total_gastado, r.comisiones_generadas,
+                   r.primera_compra
+            FROM referidos_relaciones r
+            LEFT JOIN clientes c ON r.referido_id = c.discord_id
+            WHERE r.referidor_id = ?
+            ORDER BY r.fecha_registro DESC
+            LIMIT 20
+        ''', (str(ctx.author.id),))
+        referidos = await cursor.fetchall()
+        
+        cursor = await db.execute('''
+            SELECT SUM(comisiones_generadas) as total 
+            FROM referidos_relaciones WHERE referidor_id = ?
+        ''', (str(ctx.author.id),))
+        total_comisiones = await cursor.fetchone()
+    
+    if not referidos:
+        await ctx.send(embed=embeds.crear_embed_error("No has referido a nadie todavía"))
+        return
+    
+    embed = discord.Embed(
+        title="👥 **TUS REFERIDOS**",
+        description=f"Total comisiones: **{total_comisiones['total'] or 0} VP$**",
+        color=config.COLORS['primary']
+    )
+    
+    for ref in referidos[:10]:
+        nombre = ref['nombre'] or f"Usuario {ref['referido_id'][:5]}..."
+        estado = "✅" if ref['primera_compra'] else "⏳"
+        embed.add_field(
+            name=f"{estado} {nombre}",
+            value=f"Compras: {ref['total_compras']} | Gastado: ${ref['total_gastado']:,} | Comisiones: ${ref['comisiones_generadas']:,}",
+            inline=False
+        )
+    
+    if len(referidos) > 10:
+        embed.set_footer(text=f"Mostrando 10 de {len(referidos)} referidos")
+    
+    await ctx.send(embed=embed)
+
+# ============================================
+# COMANDOS CEO PARA REFERIDOS
+# ============================================
+
+@bot.command(name="setrefcomision")
+async def cmd_set_ref_comision(ctx, porcentaje: int):
+    """[CEO] Establece el % de comisión para referidores"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if porcentaje < 0 or porcentaje > 50:
+        await ctx.send(embed=embeds.crear_embed_error("El porcentaje debe estar entre 0 y 50"))
+        return
+    
+    global REFERIDOS_PORCENTAJE
+    REFERIDOS_PORCENTAJE = porcentaje
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            UPDATE referidos_config SET porcentaje_comision = ? WHERE id = 1
+        ''', (porcentaje,))
+        await db.commit()
+    
+    embed = embeds.crear_embed_exito(f"✅ Porcentaje de comisión actualizado a **{porcentaje}%**")
+    await ctx.send(embed=embed)
+    await bot.enviar_log_sistema("⚙️ **CONFIG REFERIDOS**", f"Comisión cambiada a {porcentaje}% por {ctx.author.name}")
+
+@bot.command(name="setrefdescuento")
+async def cmd_set_ref_descuento(ctx, porcentaje: int):
+    """[CEO] Establece el % de descuento para nuevos referidos"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if porcentaje < 0 or porcentaje > 50:
+        await ctx.send(embed=embeds.crear_embed_error("El porcentaje debe estar entre 0 y 50"))
+        return
+    
+    global REFERIDOS_DESCUENTO
+    REFERIDOS_DESCUENTO = porcentaje
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            UPDATE referidos_config SET porcentaje_descuento = ? WHERE id = 1
+        ''', (porcentaje,))
+        await db.commit()
+    
+    embed = embeds.crear_embed_exito(f"✅ Porcentaje de descuento actualizado a **{porcentaje}%**")
+    await ctx.send(embed=embed)
+    await bot.enviar_log_sistema("⚙️ **CONFIG REFERIDOS**", f"Descuento cambiado a {porcentaje}% por {ctx.author.name}")
+
+@bot.command(name="refconfig")
+async def cmd_ref_config(ctx):
+    """[CEO] Muestra la configuración actual de referidos"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    embed = discord.Embed(
+        title="⚙️ **CONFIGURACIÓN DE REFERIDOS**",
+        color=config.COLORS['primary']
+    )
+    embed.add_field(name="💰 Comisión referidor", value=f"**{REFERIDOS_PORCENTAJE}%**", inline=True)
+    embed.add_field(name="🎁 Descuento referido", value=f"**{REFERIDOS_DESCUENTO}%**", inline=True)
+    
+    await ctx.send(embed=embed)
+
+# ============================================
+# COMANDO DE COMPRA (SOLO RANDOM)
+# ============================================
 
 @bot.command(name="comprarrandom")
-async def cmd_comprar_random(ctx, cantidad: int):
-    """Comprar boletos aleatorios"""
+async def cmd_comprar_random(ctx, cantidad: int = 1):
+    """Compra boletos aleatorios (única forma de comprar)"""
     if not await verificar_canal(ctx):
         return
     
     if cantidad < 1 or cantidad > config.MAX_BOLETOS_POR_COMPRA:
-        await ctx.send(embed=embeds.crear_embed_error(f"Cantidad inválida. Máximo {config.MAX_BOLETOS_POR_COMPRA}"))
+        await ctx.send(embed=embeds.crear_embed_error(f"Cantidad inválida. Mínimo 1, máximo {config.MAX_BOLETOS_POR_COMPRA}"))
         return
     
     rifa_activa = await bot.db.get_rifa_activa()
@@ -199,9 +777,41 @@ async def cmd_comprar_random(ctx, cantidad: int):
         await ctx.send(embed=embeds.crear_embed_error(f"Solo hay {len(disponibles)} boletos disponibles"))
         return
     
+    precio_boleto = rifa_activa['precio_boleto']
+    precio_total = precio_boleto * cantidad
+    descuento = await obtener_descuento_usuario(str(ctx.author.id))
+    precio_con_descuento = int(precio_total * (100 - descuento) / 100)
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(ctx.author.id),))
+        result = await cursor.fetchone()
+        balance_actual = result[0] if result else 0
+    
+    if balance_actual < precio_con_descuento:
+        await ctx.send(embed=embeds.crear_embed_error(
+            f"❌ No tienes suficientes VP$.\n"
+            f"💰 Tu balance: **{balance_actual} VP$**\n"
+            f"💵 Precio total: **{precio_total} VP$**\n"
+            f"🎁 Descuento ({descuento}%): **-{precio_total - precio_con_descuento} VP$**\n"
+            f"💰 Total a pagar: **{precio_con_descuento} VP$**"
+        ))
+        return
+    
+    nuevo_balance = balance_actual - precio_con_descuento
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+        ''', (nuevo_balance, str(ctx.author.id)))
+        await db.commit()
+    
     seleccionados = random.sample(disponibles, cantidad)
     
     comprados = []
+    fallidos = []
+    
     for num in seleccionados:
         exito, _ = await bot.db.comprar_boleto(
             rifa_activa['id'],
@@ -212,13 +822,94 @@ async def cmd_comprar_random(ctx, cantidad: int):
         )
         if exito:
             comprados.append(num)
+        else:
+            fallidos.append(num)
     
     if comprados:
-        await ctx.send(embed=embeds.crear_embed_exito(f"✅ Boletos comprados: {', '.join(map(str, comprados))}\nTotal: ${len(comprados) * rifa_activa['precio_boleto']:,}"))
-        await ctx.send(f"🎟️ **{ctx.author.name}** acaba de comprar {len(comprados)} boletos: {', '.join(map(str, comprados))}")
-        await enviar_log(ctx, "🎟️ COMPRA MÚLTIPLE", f"{ctx.author.name} compró {len(comprados)} boletos: {', '.join(map(str, comprados))}")
+        if fallidos:
+            monto_devolver = len(fallidos) * (precio_con_descuento // cantidad)
+            nuevo_balance += monto_devolver
+            
+            async with aiosqlite.connect(bot.db.db_path) as db:
+                await db.execute('''
+                    UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+                ''', (nuevo_balance, str(ctx.author.id)))
+                await db.commit()
+        
+        monto_pagado = precio_con_descuento - (len(fallidos) * (precio_con_descuento // cantidad))
+        nuevo_nivel = await actualizar_fidelizacion(str(ctx.author.id), monto_pagado)
+        cashback = await aplicar_cashback(str(ctx.author.id), monto_pagado)
+        await procesar_comision_referido(str(ctx.author.id), monto_pagado)
+        
+        await ctx.send(embed=embeds.crear_embed_exito(
+            f"✅ ¡Compraste {len(comprados)} boletos!\n"
+            f"🎟️ Números: {', '.join(map(str, comprados))}\n"
+            f"💰 Total: ${monto_pagado:,} VP$\n"
+            f"🎁 Descuento: {descuento}%\n"
+            f"💵 Balance anterior: {balance_actual} VP$\n"
+            f"💵 Balance actual: {nuevo_balance} VP$\n"
+            f"💸 Cashback acumulado: {cashback} VP$\n"
+            f"🏆 Nuevo nivel: {nuevo_nivel}"
+        ))
+        
+        await enviar_log(ctx, "🎟️ COMPRA", 
+                        f"{ctx.author.name} compró {len(comprados)} boletos: {', '.join(map(str, comprados))} por {monto_pagado:,} VP$")
     else:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            await db.execute('''
+                UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+            ''', (balance_actual, str(ctx.author.id)))
+            await db.commit()
+        
         await ctx.send(embed=embeds.crear_embed_error("No se pudo comprar ningún boleto"))
+
+async def procesar_comision_referido(comprador_id, monto_compra):
+    """Procesa la comisión para el referidor si existe"""
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT referidor_id FROM referidos_relaciones WHERE referido_id = ?
+        ''', (comprador_id,))
+        result = await cursor.fetchone()
+        
+        if not result:
+            return
+        
+        referidor_id = result[0]
+        
+        cursor = await db.execute('''
+            SELECT porcentaje_comision FROM referidos_config WHERE id = 1
+        ''')
+        config_ref = await cursor.fetchone()
+        porcentaje = config_ref[0] if config_ref else 10
+        
+        comision = int(monto_compra * porcentaje / 100)
+        
+        await db.execute('''
+            INSERT INTO usuarios_balance (discord_id, nombre, balance)
+            VALUES (?, (SELECT nombre FROM clientes WHERE discord_id = ?), ?)
+            ON CONFLICT(discord_id) DO UPDATE SET
+                balance = balance + ?
+        ''', (referidor_id, referidor_id, comision, comision))
+        
+        await db.execute('''
+            UPDATE referidos_relaciones SET 
+                primera_compra = 1,
+                total_compras = total_compras + 1,
+                total_gastado = total_gastado + ?,
+                comisiones_generadas = comisiones_generadas + ?
+            WHERE referido_id = ?
+        ''', (monto_compra, comision, comprador_id))
+        
+        await db.execute('''
+            INSERT INTO referidos_comisiones (referidor_id, referido_id, monto_compra, porcentaje, comision)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (referidor_id, comprador_id, monto_compra, porcentaje, comision))
+        
+        await db.commit()
+
+# ============================================
+# COMANDO MISBOLETOS
+# ============================================
 
 @bot.command(name="misboletos")
 async def cmd_mis_boletos(ctx):
@@ -255,98 +946,48 @@ async def cmd_mis_boletos(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.command(name="disponibles")
-async def cmd_boletos_disponibles(ctx):
-    """Ver números disponibles"""
+# ============================================
+# COMANDO RIFA
+# ============================================
+
+@bot.command(name="rifa")
+async def cmd_rifa(ctx):
+    """Ver la rifa activa actual"""
     if not await verificar_canal(ctx):
         return
     
     rifa_activa = await bot.db.get_rifa_activa()
+    
     if not rifa_activa:
-        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        await ctx.send(embed=embeds.crear_embed_error("No hay ninguna rifa activa en este momento."))
         return
-    
-    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
-    
-    if not disponibles:
-        await ctx.send(embed=embeds.crear_embed_info("🎟️ Boletos disponibles", "**¡No quedan boletos disponibles!**\nEl sorteo será pronto."))
-        return
-    
-    total = rifa_activa['total_boletos']
-    matriz = []
-    for i in range(1, total + 1, 10):
-        fila = []
-        for j in range(10):
-            num = i + j
-            if num <= total:
-                if num in disponibles:
-                    fila.append(f"`{num:03d}`")
-                else:
-                    fila.append(f"~~`{num:03d}`~~")
-        matriz.append(" ".join(fila))
     
     embed = discord.Embed(
-        title=f"🎟️ Boletos disponibles ({len(disponibles)}/{total})",
-        description="\n".join(matriz[:5]),
-        color=config.COLORS['info']
+        title=f"🎟️ {rifa_activa['nombre']}",
+        description=f"**{rifa_activa['premio']}**",
+        color=config.COLORS['primary']
     )
-    embed.set_footer(text="Usa !comprar [número] para participar")
+    
+    embed.add_field(
+        name="🏆 Premio",
+        value=f"${rifa_activa['valor_premio']:,}",
+        inline=True
+    )
+    
+    embed.add_field(
+        name="💰 Precio por boleto",
+        value=f"${rifa_activa['precio_boleto']:,}",
+        inline=True
+    )
+    
+    embed.set_footer(text="VP Rifas • Usa !comprarrandom para participar")
+    embed.timestamp = datetime.now()
     
     await ctx.send(embed=embed)
 
-@bot.command(name="ranking")
-async def cmd_ranking(ctx):
-    """Ver top compradores"""
-    if not await verificar_canal(ctx):
-        return
-    
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute('''
-            SELECT nombre, total_compras, total_gastado 
-            FROM clientes 
-            ORDER BY total_gastado DESC 
-            LIMIT 10
-        ''')
-        usuarios = await cursor.fetchall()
-    
-    embed = embeds.crear_embed_ranking(usuarios)
-    await ctx.send(embed=embed)
-
-@bot.command(name="historial")
-async def cmd_historial(ctx):
-    """Ver tu historial completo de compras"""
-    if not await verificar_canal(ctx):
-        return
-    
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute('''
-            SELECT b.numero, r.nombre as rifa_nombre, b.fecha_compra, b.precio_pagado
-            FROM boletos b
-            JOIN rifas r ON b.rifa_id = r.id
-            WHERE b.comprador_id = ?
-            ORDER BY b.fecha_compra DESC
-            LIMIT 20
-        ''', (str(ctx.author.id),))
-        boletos = await cursor.fetchall()
-    
-    if not boletos:
-        await ctx.send(embed=embeds.crear_embed_error("No tienes historial de compras"))
-        return
-    
-    embed = discord.Embed(title="📜 Tu historial de compras", color=config.COLORS['primary'])
-    for b in boletos[:10]:
-        embed.add_field(
-            name=f"{b['rifa_nombre']} - #{b['numero']}",
-            value=f"${b['precio_pagado']:,} - {b['fecha_compra'][:10]}",
-            inline=False
-        )
-    
-    if len(boletos) > 10:
-        embed.set_footer(text=f"Mostrando 10 de {len(boletos)} compras")
-    
-    await ctx.send(embed=embed)
+# ============================================
+# COMANDO BALANCE
+# ============================================
 
 @bot.command(name="balance")
 async def cmd_balance(ctx):
@@ -369,6 +1010,10 @@ async def cmd_balance(ctx):
     )
     
     await ctx.send(embed=embed)
+
+# ============================================
+# COMANDO TOPVP
+# ============================================
 
 @bot.command(name="topvp")
 async def cmd_top_vp(ctx):
@@ -405,50 +1050,13 @@ async def cmd_top_vp(ctx):
     
     await ctx.send(embed=embed)
 
-# ===== COMANDOS DE VENDEDOR =====
-
-@bot.command(name="vender")
-async def cmd_vender(ctx, usuario: discord.Member, numero: int):
-    """Vender boleto a un usuario"""
-    if not await verificar_canal(ctx):
-        return
-    if not await check_vendedor(ctx):
-        await ctx.send("❌ No tienes permiso para usar este comando")
-        return
-    
-    rifa_activa = await bot.db.get_rifa_activa()
-    if not rifa_activa:
-        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
-        return
-    
-    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
-    if numero not in disponibles:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ El número {numero} no está disponible."))
-        return
-    
-    exito, mensaje = await bot.db.comprar_boleto(
-        rifa_activa['id'],
-        numero,
-        str(usuario.id),
-        usuario.name,
-        str(ctx.author.id)
-    )
-    
-    if exito:
-        await ctx.send(embed=embeds.crear_embed_exito(f"✅ Boleto #{numero} vendido a {usuario.name}"))
-        await ctx.send(f"💰 **{ctx.author.name}** vendió el boleto **#{numero}** a **{usuario.name}**")
-        await enviar_log(ctx, "💰 VENTA", f"{ctx.author.name} vendió #{numero} a {usuario.name}")
-        
-        try:
-            await usuario.send(f"🎟️ **{ctx.author.name}** te vendió el boleto #{numero} en la rifa **{rifa_activa['nombre']}**")
-        except:
-            pass
-    else:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error: {mensaje}"))
+# ============================================
+# COMANDOS DE VENDEDOR (CORREGIDOS)
+# ============================================
 
 @bot.command(name="misventas")
 async def cmd_mis_ventas(ctx):
-    """Ver tus ventas"""
+    """Ver tus ventas como vendedor"""
     if not await verificar_canal(ctx):
         return
     if not await check_vendedor(ctx):
@@ -475,22 +1083,167 @@ async def cmd_mis_ventas(ctx):
     embed = discord.Embed(title="💰 Tus ventas", color=config.COLORS['primary'])
     
     if vendedor:
-        embed.add_field(name="Comisiones pendientes", value=f"${vendedor['comisiones_pendientes']:,}", inline=False)
+        embed.add_field(name="Comisiones pendientes", value=f"**${vendedor['comisiones_pendientes']:,} VP$**", inline=False)
     
     if ventas:
-        for v in ventas[:5]:
+        for v in ventas[:10]:
             embed.add_field(
-                name=f"{v['rifa_nombre']} - #{v['numero']}",
-                value=f"Comprador: {v['comprador_nick']} - ${v['precio_pagado']:,} - {v['fecha_compra'][:10]}",
+                name=f"🎟️ #{v['numero']} - {v['rifa_nombre']}",
+                value=f"Comprador: {v['comprador_nick']} | ${v['precio_pagado']:,} VP$ | {v['fecha_compra'][:10]}",
                 inline=False
             )
+        embed.set_footer(text=f"Total: {len(ventas)} ventas")
     else:
         embed.description = "No tienes ventas registradas"
     
-    embed.set_footer(text=f"Total ventas mostradas: {len(ventas)}")
     await ctx.send(embed=embed)
 
-# ===== COMANDOS DE ADMIN =====
+@bot.command(name="listaboletos")
+async def cmd_lista_boletos(ctx):
+    """[VENDEDOR] Lista todos los boletos con su estado"""
+    if not await verificar_canal(ctx):
+        return
+    if not await check_vendedor(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
+    total = rifa_activa['total_boletos']
+    
+    embed = discord.Embed(
+        title=f"📋 **LISTA DE BOLETOS**",
+        description=f"**Rifa:** {rifa_activa['nombre']}",
+        color=config.COLORS['info']
+    )
+    
+    embed.add_field(name="📊 Total", value=f"**{total}** boletos", inline=True)
+    embed.add_field(name="✅ Disponibles", value=f"**{len(disponibles)}**", inline=True)
+    embed.add_field(name="📈 Vendidos", value=f"**{vendidos}**", inline=True)
+    
+    # Mostrar algunos números de ejemplo
+    if disponibles:
+        ejemplos_disp = random.sample(disponibles, min(10, len(disponibles)))
+        ejemplos_disp.sort()
+        embed.add_field(name="🔢 Ejemplos disponibles", value=f"`{', '.join(map(str, ejemplos_disp))}`", inline=False)
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT numero, comprador_nick FROM boletos 
+            WHERE rifa_id = ? AND estado = 'pagado'
+            ORDER BY fecha_compra DESC
+            LIMIT 10
+        ''', (rifa_activa['id'],))
+        ultimos_vendidos = await cursor.fetchall()
+    
+    if ultimos_vendidos:
+        texto = "\n".join([f"• #{b['numero']} - {b['comprador_nick']}" for b in ultimos_vendidos])
+        embed.add_field(name="🔄 Últimos vendidos", value=texto, inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="venderrandom")
+async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int):
+    """[VENDEDOR] Vende boletos aleatorios a un usuario"""
+    if not await verificar_canal(ctx):
+        return
+    if not await check_vendedor(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    if cantidad < 1 or cantidad > config.MAX_BOLETOS_POR_COMPRA:
+        await ctx.send(embed=embeds.crear_embed_error(f"Cantidad inválida. Mínimo 1, máximo {config.MAX_BOLETOS_POR_COMPRA}"))
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    if len(disponibles) < cantidad:
+        await ctx.send(embed=embeds.crear_embed_error(f"Solo hay {len(disponibles)} boletos disponibles"))
+        return
+    
+    precio_boleto = rifa_activa['precio_boleto']
+    precio_total = precio_boleto * cantidad
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(usuario.id),))
+        result = await cursor.fetchone()
+        balance_actual = result[0] if result else 0
+    
+    descuento = await obtener_descuento_usuario(str(usuario.id))
+    precio_con_descuento = int(precio_total * (100 - descuento) / 100)
+    
+    if balance_actual < precio_con_descuento:
+        await ctx.send(embed=embeds.crear_embed_error(
+            f"❌ {usuario.name} no tiene suficientes VP$.\n"
+            f"💰 Su balance: **{balance_actual} VP$**\n"
+            f"💵 Precio total: **{precio_total} VP$**\n"
+            f"🎁 Descuento ({descuento}%): **-{precio_total - precio_con_descuento} VP$**\n"
+            f"💰 Total a pagar: **{precio_con_descuento} VP$**"
+        ))
+        return
+    
+    nuevo_balance = balance_actual - precio_con_descuento
+    
+    seleccionados = random.sample(disponibles, cantidad)
+    
+    comprados = []
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+        ''', (nuevo_balance, str(usuario.id)))
+        
+        for num in seleccionados:
+            exito, _ = await bot.db.comprar_boleto(
+                rifa_activa['id'],
+                num,
+                str(usuario.id),
+                usuario.name,
+                str(ctx.author.id)
+            )
+            if exito:
+                comprados.append(num)
+        
+        await db.commit()
+    
+    if comprados:
+        monto_pagado = precio_con_descuento
+        await actualizar_fidelizacion(str(usuario.id), monto_pagado)
+        await aplicar_cashback(str(usuario.id), monto_pagado)
+        await procesar_comision_referido(str(usuario.id), monto_pagado)
+        
+        await ctx.send(embed=embeds.crear_embed_exito(
+            f"✅ Venta realizada a {usuario.name}\n"
+            f"🎟️ Boletos: {', '.join(map(str, comprados))}\n"
+            f"💰 Total: ${monto_pagado:,} VP$\n"
+            f"🎁 Descuento aplicado: {descuento}%"
+        ))
+        await enviar_log(ctx, "💰 VENTA", 
+                        f"{ctx.author.name} vendió {len(comprados)} boletos a {usuario.name} por {monto_pagado:,} VP$")
+    else:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            await db.execute('''
+                UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+            ''', (balance_actual, str(usuario.id)))
+            await db.commit()
+        
+        await ctx.send(embed=embeds.crear_embed_error("No se pudo realizar la venta"))
+
+# ============================================
+# COMANDOS DE ADMIN (CORREGIDOS)
+# ============================================
 
 @bot.command(name="crearifa")
 async def cmd_crear_rifa(ctx, nombre: str, premio: str, valor_premio: int, precio_boleto: int, total_boletos: int):
@@ -504,6 +1257,7 @@ async def cmd_crear_rifa(ctx, nombre: str, premio: str, valor_premio: int, preci
     embed = embeds.crear_embed_exito(f"✅ Rifa creada exitosamente!\nID: {rifa_id}\nNombre: {nombre}\nPremio: {premio}\nPrecio: ${precio_boleto:,}\nTotal boletos: {total_boletos}")
     await ctx.send(embed=embed)
     await enviar_log(ctx, "🎯 NUEVA RIFA", f"{nombre} - {premio} - ${precio_boleto} c/u - {total_boletos} boletos")
+    await bot.enviar_log_sistema("🎯 **NUEVA RIFA CREADA**", f"**{nombre}**\nPremio: {premio}\nPrecio: ${precio_boleto}\nBoletos: {total_boletos}")
 
 @bot.command(name="aumentarnumeros")
 async def cmd_aumentar_numeros(ctx, cantidad_nuevos: int):
@@ -522,21 +1276,17 @@ async def cmd_aumentar_numeros(ctx, cantidad_nuevos: int):
         return
     
     async with aiosqlite.connect(bot.db.db_path) as db:
-        # Obtener total actual
         cursor = await db.execute('SELECT total_boletos FROM rifas WHERE id = ?', (rifa_activa['id'],))
         total_actual = (await cursor.fetchone())[0]
         
-        # Calcular nuevo total
         nuevo_total = total_actual + cantidad_nuevos
         
-        # Actualizar la rifa
         await db.execute('''
             UPDATE rifas SET total_boletos = ? WHERE id = ?
         ''', (nuevo_total, rifa_activa['id']))
         
         await db.commit()
     
-    # Obtener números disponibles actualizados
     disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
     vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
     
@@ -553,6 +1303,7 @@ async def cmd_aumentar_numeros(ctx, cantidad_nuevos: int):
     
     await ctx.send(embed=embed)
     await enviar_log(ctx, "📈 AMPLIACIÓN DE RIFA", f"{ctx.author.name} agregó {cantidad_nuevos} boletos (total: {total_actual} → {nuevo_total})")
+    await bot.enviar_log_sistema("📈 **RIFA AMPLIADA**", f"Se agregaron **{cantidad_nuevos}** boletos\nTotal ahora: **{nuevo_total}** boletos")
 
 @bot.command(name="cerrarifa")
 async def cmd_cerrar_rifa(ctx):
@@ -569,12 +1320,19 @@ async def cmd_cerrar_rifa(ctx):
     await bot.db.cerrar_rifa(rifa_activa['id'])
     await ctx.send(embed=embeds.crear_embed_exito(f"✅ Rifa #{rifa_activa['id']} cerrada. Lista para sorteo."))
     await enviar_log(ctx, "🔒 RIFA CERRADA", f"Rifa #{rifa_activa['id']} - {rifa_activa['nombre']} cerrada por {ctx.author.name}")
+    await bot.enviar_log_sistema("🔒 **RIFA CERRADA**", f"Rifa **{rifa_activa['nombre']}** cerrada por {ctx.author.name}")
 
-@bot.command(name="sorteo")
-async def cmd_sorteo(ctx, numero_ganador: int):
-    """Realizar sorteo con número ganador"""
+@bot.command(name="iniciarsorteo")
+async def cmd_iniciar_sorteo(ctx, ganadores: int = 1):
+    """[ADMIN] Inicia sorteo automático con cuenta regresiva"""
+    global sorteo_en_curso, sorteo_cancelado
+    
     if not await check_admin(ctx):
         await ctx.send("❌ No tienes permiso")
+        return
+    
+    if sorteo_en_curso:
+        await ctx.send(embed=embeds.crear_embed_error("❌ Ya hay un sorteo en curso. Usa !cancelarsorteo si es necesario."))
         return
     
     rifa_activa = await bot.db.get_rifa_activa()
@@ -582,28 +1340,185 @@ async def cmd_sorteo(ctx, numero_ganador: int):
         await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
         return
     
-    boleto = await bot.db.obtener_ganador(rifa_activa['id'], numero_ganador)
+    if ganadores < 1 or ganadores > 10:
+        await ctx.send(embed=embeds.crear_embed_error("El número de ganadores debe ser entre 1 y 10"))
+        return
     
-    if boleto:
-        embed = discord.Embed(
-            title="🎉 ¡TENEMOS GANADOR! 🎉",
-            description=f"**Número ganador: #{numero_ganador}**",
-            color=config.COLORS['success']
+    vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
+    if vendidos < ganadores:
+        await ctx.send(embed=embeds.crear_embed_error(f"Solo hay {vendidos} boletos vendidos. No puedes elegir {ganadores} ganadores."))
+        return
+    
+    sorteo_en_curso = True
+    sorteo_cancelado = False
+    
+    embed = discord.Embed(
+        title="🎲 **SORTEO AUTOMÁTICO** 🎲",
+        description=f"**Rifa:** {rifa_activa['nombre']}\n"
+                    f"**Premio:** {rifa_activa['premio']}\n"
+                    f"**Ganadores:** {ganadores}\n"
+                    f"**Boletos vendidos:** {vendidos}\n\n"
+                    f"⏰ El sorteo comenzará en **10 segundos**...",
+        color=config.COLORS['primary']
+    )
+    await ctx.send(embed=embed)
+    
+    await asyncio.sleep(10)
+    
+    if sorteo_cancelado:
+        sorteo_en_curso = False
+        await ctx.send(embed=embeds.crear_embed_error("❌ Sorteo cancelado"))
+        return
+    
+    mensaje = await ctx.send("**3...**")
+    await asyncio.sleep(1)
+    await mensaje.edit(content="**2...**")
+    await asyncio.sleep(1)
+    await mensaje.edit(content="**1...**")
+    await asyncio.sleep(1)
+    await mensaje.edit(content="**🎲 ¡SORTEANDO! 🎲**")
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT numero, comprador_id, comprador_nick 
+            FROM boletos 
+            WHERE rifa_id = ? AND estado = 'pagado'
+        ''', (rifa_activa['id'],))
+        boletos = await cursor.fetchall()
+    
+    boletos_lista = list(boletos)
+    ganadores_seleccionados = []
+    
+    if len(boletos_lista) <= ganadores:
+        ganadores_seleccionados = boletos_lista
+    else:
+        ganadores_seleccionados = random.sample(boletos_lista, ganadores)
+    
+    embed = discord.Embed(
+        title="🎉 **¡GANADORES DEL SORTEO!** 🎉",
+        description=f"**Rifa:** {rifa_activa['nombre']}\n**Premio:** {rifa_activa['premio']}",
+        color=config.COLORS['success']
+    )
+    
+    for i, boleto in enumerate(ganadores_seleccionados, 1):
+        embed.add_field(
+            name=f"🏆 Ganador #{i}",
+            value=f"**Número:** #{boleto['numero']}\n**Usuario:** {boleto['comprador_nick']} (<@{boleto['comprador_id']}>)",
+            inline=False
         )
-        embed.add_field(name="👑 Ganador", value=f"<@{boleto['comprador_id']}>", inline=True)
-        embed.add_field(name="🎟️ Boleto", value=f"#{boleto['numero']}", inline=True)
-        embed.add_field(name="🏆 Premio", value=rifa_activa['premio'], inline=False)
-        
-        await ctx.send(embed=embed)
-        await enviar_log(ctx, "🎉 SORTEO", f"Ganador: {boleto['comprador_nick']} con #{numero_ganador} - Premio: {rifa_activa['premio']}")
-        
+    
+    await ctx.send(embed=embed)
+    
+    await bot.db.cerrar_rifa(rifa_activa['id'])
+    
+    for boleto in ganadores_seleccionados:
         try:
             usuario = await bot.fetch_user(int(boleto['comprador_id']))
-            await usuario.send(f"🎉 ¡Felicidades! Has ganado la rifa **{rifa_activa['nombre']}** con el boleto #{numero_ganador}. El premio: {rifa_activa['premio']}")
+            await usuario.send(f"🎉 **¡FELICIDADES!** Has ganado la rifa **{rifa_activa['nombre']}** con el boleto **#{boleto['numero']}**.\n\nPremio: {rifa_activa['premio']}")
         except:
             pass
-    else:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ No hay ganador para el número {numero_ganador}"))
+    
+    ganadores_text = ", ".join([f"#{b['numero']} ({b['comprador_nick']})" for b in ganadores_seleccionados])
+    await enviar_log(ctx, "🎉 SORTEO REALIZADO", f"{ctx.author.name} realizó sorteo de {rifa_activa['nombre']}\nGanadores: {ganadores_text}")
+    await bot.enviar_log_sistema("🎉 **SORTEO REALIZADO**", f"Rifa **{rifa_activa['nombre']}**\nGanadores: {ganadores_text}")
+    
+    sorteo_en_curso = False
+
+@bot.command(name="cancelarsorteo")
+async def cmd_cancelar_sorteo(ctx):
+    """[ADMIN] Cancela el sorteo en curso"""
+    global sorteo_en_curso, sorteo_cancelado
+    
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    if not sorteo_en_curso:
+        await ctx.send(embed=embeds.crear_embed_error("No hay ningún sorteo en curso"))
+        return
+    
+    sorteo_cancelado = True
+    sorteo_en_curso = False
+    await ctx.send(embed=embeds.crear_embed_exito("✅ Sorteo cancelado"))
+    await enviar_log(ctx, "⏹️ SORTEO CANCELADO", f"{ctx.author.name} canceló el sorteo")
+
+@bot.command(name="finalizarrifa")
+async def cmd_finalizar_rifa(ctx, id_rifa: int = None, ganadores: int = 1):
+    """[ADMIN] Finaliza una rifa y elige ganadores automáticamente"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    if id_rifa is None:
+        rifa = await bot.db.get_rifa_activa()
+        if not rifa:
+            await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa. Especifica el ID de la rifa."))
+            return
+        id_rifa = rifa['id']
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('SELECT * FROM rifas WHERE id = ?', (id_rifa,))
+        rifa = await cursor.fetchone()
+    
+    if not rifa:
+        await ctx.send(embed=embeds.crear_embed_error(f"No existe rifa con ID {id_rifa}"))
+        return
+    
+    if ganadores < 1 or ganadores > 10:
+        await ctx.send(embed=embeds.crear_embed_error("El número de ganadores debe ser entre 1 y 10"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT numero, comprador_id, comprador_nick 
+            FROM boletos 
+            WHERE rifa_id = ? AND estado = 'pagado'
+        ''', (id_rifa,))
+        boletos = await cursor.fetchall()
+    
+    if not boletos:
+        await ctx.send(embed=embeds.crear_embed_error(f"La rifa #{id_rifa} no tiene boletos vendidos"))
+        return
+    
+    if len(boletos) < ganadores:
+        await ctx.send(embed=embeds.crear_embed_error(f"Solo hay {len(boletos)} boletos vendidos. No puedes elegir {ganadores} ganadores."))
+        return
+    
+    boletos_lista = list(boletos)
+    ganadores_seleccionados = random.sample(boletos_lista, ganadores)
+    
+    embed = discord.Embed(
+        title="🎉 **RIFA FINALIZADA** 🎉",
+        description=f"**Rifa #{id_rifa}:** {rifa['nombre']}\n**Premio:** {rifa['premio']}",
+        color=config.COLORS['success']
+    )
+    
+    for i, boleto in enumerate(ganadores_seleccionados, 1):
+        embed.add_field(
+            name=f"🏆 Ganador #{i}",
+            value=f"**Número:** #{boleto['numero']}\n**Usuario:** {boleto['comprador_nick']} (<@{boleto['comprador_id']}>)",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('UPDATE rifas SET estado = "finalizada" WHERE id = ?', (id_rifa,))
+        await db.commit()
+    
+    for boleto in ganadores_seleccionados:
+        try:
+            usuario = await bot.fetch_user(int(boleto['comprador_id']))
+            await usuario.send(f"🎉 **¡FELICIDADES!** Has ganado la rifa **{rifa['nombre']}** (ID: {id_rifa}) con el boleto **#{boleto['numero']}**.\n\nPremio: {rifa['premio']}")
+        except:
+            pass
+    
+    ganadores_text = ", ".join([f"#{b['numero']} ({b['comprador_nick']})" for b in ganadores_seleccionados])
+    await enviar_log(ctx, "🏁 RIFA FINALIZADA", f"{ctx.author.name} finalizó rifa #{id_rifa} - {rifa['nombre']}\nGanadores: {ganadores_text}")
+    await bot.enviar_log_sistema("🏁 **RIFA FINALIZADA**", f"Rifa **{rifa['nombre']}** (ID: {id_rifa})\nGanadores: {ganadores_text}")
 
 @bot.command(name="vendedoradd")
 async def cmd_vendedor_add(ctx, usuario: discord.Member, comision: int = 15):
@@ -657,9 +1572,9 @@ async def cmd_pagar_comisiones(ctx):
         
         embed = discord.Embed(title="💰 Comisiones pendientes", color=config.COLORS['primary'])
         for v in vendedores:
-            embed.add_field(name=v['nombre'], value=f"${v['comisiones_pendientes']:,}", inline=True)
+            embed.add_field(name=v['nombre'], value=f"**${v['comisiones_pendientes']:,} VP$**", inline=True)
         
-        embed.add_field(name="TOTAL", value=f"${total:,}", inline=False)
+        embed.add_field(name="TOTAL", value=f"**${total:,} VP$**", inline=False)
         embed.set_footer(text="Usa !confirmarpago @usuario para pagar")
         
         await ctx.send(embed=embed)
@@ -697,96 +1612,13 @@ async def cmd_confirmar_pago(ctx, vendedor: discord.Member):
         
         await db.commit()
     
-    embed = embeds.crear_embed_exito(f"✅ Pagadas ${monto:,} en comisiones a {vendedor.name}")
+    embed = embeds.crear_embed_exito(f"✅ Pagadas **${monto:,} VP$** en comisiones a {vendedor.name}")
     await ctx.send(embed=embed)
     await enviar_log(ctx, "💰 PAGO COMISIONES", f"{ctx.author.name} pagó ${monto:,} a {vendedor.name}")
 
-@bot.command(name="reporte")
-async def cmd_reporte(ctx):
-    """Ver reporte de la rifa actual"""
-    if not await check_admin(ctx):
-        await ctx.send("❌ No tienes permiso")
-        return
-    
-    rifa_activa = await bot.db.get_rifa_activa()
-    if not rifa_activa:
-        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
-        return
-    
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        db.row_factory = aiosqlite.Row
-        
-        vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
-        recaudado = vendidos * rifa_activa['precio_boleto']
-        meta = rifa_activa['total_boletos'] * rifa_activa['precio_boleto']
-        
-        cursor = await db.execute('''
-            SELECT v.nombre, COUNT(*) as ventas, SUM(b.precio_pagado) as total
-            FROM boletos b
-            JOIN vendedores v ON b.vendedor_id = v.discord_id
-            WHERE b.rifa_id = ? AND b.vendedor_id IS NOT NULL
-            GROUP BY v.discord_id
-            ORDER BY ventas DESC
-            LIMIT 5
-        ''', (rifa_activa['id'],))
-        top_vendedores = await cursor.fetchall()
-        
-        cursor = await db.execute('''
-            SELECT comprador_nick, COUNT(*) as compras, SUM(precio_pagado) as total
-            FROM boletos
-            WHERE rifa_id = ?
-            GROUP BY comprador_id
-            ORDER BY compras DESC
-            LIMIT 5
-        ''', (rifa_activa['id'],))
-        top_compradores = await cursor.fetchall()
-    
-    embed = discord.Embed(
-        title=f"📊 REPORTE - {rifa_activa['nombre']}",
-        color=config.COLORS['primary']
-    )
-    
-    embed.add_field(name="💰 Recaudado", value=f"${recaudado:,} / ${meta:,}", inline=True)
-    embed.add_field(name="🎟️ Boletos", value=f"{vendidos}/{rifa_activa['total_boletos']}", inline=True)
-    
-    if top_vendedores:
-        text = "\n".join([f"• {v['nombre']}: {v['ventas']} boletos (${v['total']:,})" for v in top_vendedores])
-        embed.add_field(name="🥇 Top Vendedores", value=text, inline=False)
-    
-    if top_compradores:
-        text = "\n".join([f"• {c['comprador_nick']}: {c['compras']} boletos (${c['total']:,})" for c in top_compradores])
-        embed.add_field(name="🏆 Top Compradores", value=text, inline=False)
-    
-    await ctx.send(embed=embed)
-
-@bot.command(name="alertar")
-async def cmd_alertar(ctx, *, mensaje: str):
-    """Enviar mensaje a todos los miembros"""
-    if not await check_admin(ctx):
-        await ctx.send("❌ No tienes permiso")
-        return
-    
-    embed = discord.Embed(
-        title="📢 ALERTA DE RIFAS",
-        description=mensaje,
-        color=config.COLORS['primary']
-    )
-    embed.set_footer(text="VP Rifas • Responde en el canal de rifas")
-    
-    enviados = 0
-    for member in ctx.guild.members:
-        if not member.bot:
-            try:
-                await member.send(embed=embed)
-                enviados += 1
-                await asyncio.sleep(0.5)
-            except:
-                pass
-    
-    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Mensaje enviado a {enviados} miembros"))
-    await enviar_log(ctx, "📢 ALERTA", f"{ctx.author.name} envió alerta a {enviados} miembros: {mensaje[:50]}...")
-
-# ===== COMANDOS DE CEO =====
+# ============================================
+# COMANDOS DE CEO (CORREGIDOS)
+# ============================================
 
 @bot.command(name="acreditarvp")
 async def cmd_acreditarvp(ctx, usuario: discord.Member, cantidad: int):
@@ -829,7 +1661,7 @@ async def cmd_acreditarvp(ctx, usuario: discord.Member, cantidad: int):
         nuevo_balance = (await cursor.fetchone())[0]
     
     embed = discord.Embed(
-        title="💰 ACREDITACIÓN DE VP$",
+        title="💰 **ACREDITACIÓN DE VP$**",
         description=f"Se acreditaron **{cantidad} VP$** a {usuario.mention}",
         color=config.COLORS['success']
     )
@@ -887,7 +1719,7 @@ async def cmd_retirarvp(ctx, usuario: discord.Member, cantidad: int):
         await db.commit()
     
     embed = discord.Embed(
-        title="💰 RETIRO DE VP$",
+        title="💰 **RETIRO DE VP$**",
         description=f"Se retiraron **{cantidad} VP$** de {usuario.mention}",
         color=config.COLORS['primary']
     )
@@ -903,26 +1735,451 @@ async def cmd_retirarvp(ctx, usuario: discord.Member, cantidad: int):
     except:
         pass
 
-# ===== COMANDOS DE REINICIO (SOLO CEO) =====
+# ============================================
+# SISTEMA DE FIDELIZACIÓN
+# ============================================
+
+@bot.command(name="nivel")
+async def cmd_nivel(ctx):
+    """Muestra tu nivel de fidelización y beneficios"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT f.gasto_total, f.nivel, fc.* 
+            FROM fidelizacion f
+            JOIN fidelizacion_config fc ON f.nivel = fc.nivel
+            WHERE f.usuario_id = ?
+        ''', (str(ctx.author.id),))
+        data = await cursor.fetchone()
+    
+    if not data:
+        await ctx.send(embed=embeds.crear_embed_error("No tienes historial de compras todavía"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT nivel, gasto_minimo FROM fidelizacion_config
+            WHERE gasto_minimo > ? 
+            ORDER BY gasto_minimo ASC LIMIT 1
+        ''', (data['gasto_total'],))
+        siguiente = await cursor.fetchone()
+    
+    embed = discord.Embed(
+        title=f"🏆 **TU NIVEL: {data['nivel']}**",
+        description=f"Gasto total: **${data['gasto_total']:,} VP$**",
+        color=config.COLORS['primary']
+    )
+    
+    beneficios = []
+    if data['descuento'] > 0:
+        beneficios.append(f"💰 **{data['descuento']}%** de descuento en compras")
+    if data['boletos_gratis_por_cada'] > 0:
+        beneficios.append(f"🎟️ **{data['cantidad_boletos_gratis']}** boletos gratis cada {data['boletos_gratis_por_cada']} comprados")
+    if data['acceso_anticipado_horas'] > 0:
+        beneficios.append(f"⏰ Acceso anticipado **{data['acceso_anticipado_horas']}h** antes")
+    if data['canal_vip']:
+        beneficios.append(f"👑 Acceso a canales VIP")
+    if data['rifas_exclusivas']:
+        beneficios.append(f"✨ Participación en rifas exclusivas")
+    
+    if beneficios:
+        embed.add_field(name="✅ Tus beneficios", value="\n".join(beneficios), inline=False)
+    else:
+        embed.add_field(name="✅ Tus beneficios", value="Sin beneficios aún. ¡Sigue comprando!", inline=False)
+    
+    if siguiente:
+        falta = siguiente[1] - data['gasto_total']
+        embed.add_field(
+            name=f"🎯 Próximo nivel: {siguiente[0]}",
+            value=f"Te faltan **${falta:,} VP$** para subir de nivel",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="topgastadores")
+async def cmd_top_gastadores(ctx):
+    """Muestra el ranking de mayores gastadores"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT f.usuario_id, c.nombre, f.gasto_total, f.nivel
+            FROM fidelizacion f
+            LEFT JOIN clientes c ON f.usuario_id = c.discord_id
+            WHERE f.gasto_total > 0
+            ORDER BY f.gasto_total DESC
+            LIMIT 10
+        ''')
+        top = await cursor.fetchall()
+    
+    if not top:
+        await ctx.send(embed=embeds.crear_embed_error("No hay datos todavía"))
+        return
+    
+    embed = discord.Embed(
+        title="🏆 **TOP GASTADORES**",
+        color=config.COLORS['primary']
+    )
+    
+    for i, usuario in enumerate(top, 1):
+        nombre = usuario['nombre'] or f"Usuario {usuario['usuario_id'][:5]}..."
+        medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
+        embed.add_field(
+            name=f"{medalla} {nombre}",
+            value=f"Gastado: **${usuario['gasto_total']:,} VP$** | Nivel: {usuario['nivel']}",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+# ============================================
+# SISTEMA DE CASHBACK
+# ============================================
+
+@bot.command(name="cashback")
+async def cmd_cashback(ctx):
+    """Muestra tu cashback acumulado"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT cashback_acumulado FROM cashback WHERE usuario_id = ?
+        ''', (str(ctx.author.id),))
+        result = await cursor.fetchone()
+        
+        cursor = await db.execute('''
+            SELECT porcentaje FROM cashback_config WHERE id = 1
+        ''')
+        config_cb = await cursor.fetchone()
+        porcentaje = config_cb[0] if config_cb else 10
+    
+    cashback = result[0] if result else 0
+    
+    embed = discord.Embed(
+        title="💰 **TU CASHBACK**",
+        description=f"Acumulado: **${cashback:,} VP$**",
+        color=config.COLORS['primary']
+    )
+    embed.add_field(name="📊 Porcentaje", value=f"**{porcentaje}%** de cada compra", inline=True)
+    embed.add_field(name="📅 Día de pago", value="**LUNES**", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="topcashback")
+async def cmd_top_cashback(ctx):
+    """Muestra el ranking de cashback acumulado"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT c.usuario_id, cl.nombre, c.cashback_acumulado
+            FROM cashback c
+            LEFT JOIN clientes cl ON c.usuario_id = cl.discord_id
+            WHERE c.cashback_acumulado > 0
+            ORDER BY c.cashback_acumulado DESC
+            LIMIT 10
+        ''')
+        top = await cursor.fetchall()
+    
+    if not top:
+        await ctx.send(embed=embeds.crear_embed_error("No hay cashback acumulado todavía"))
+        return
+    
+    embed = discord.Embed(
+        title="💰 **TOP CASHBACK**",
+        color=config.COLORS['primary']
+    )
+    
+    for i, usuario in enumerate(top, 1):
+        nombre = usuario['nombre'] or f"Usuario {usuario['usuario_id'][:5]}..."
+        medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
+        embed.add_field(
+            name=f"{medalla} {nombre}",
+            value=f"**${usuario['cashback_acumulado']:,} VP$**",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+# ============================================
+# COMANDOS CEO PARA CASHBACK
+# ============================================
+
+@bot.command(name="setcashback")
+async def cmd_set_cashback(ctx, porcentaje: int):
+    """[CEO] Establece el % de cashback para todas las compras"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if porcentaje < 0 or porcentaje > 50:
+        await ctx.send(embed=embeds.crear_embed_error("El porcentaje debe estar entre 0 y 50"))
+        return
+    
+    global CASHBACK_PORCENTAJE
+    CASHBACK_PORCENTAJE = porcentaje
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            UPDATE cashback_config SET porcentaje = ? WHERE id = 1
+        ''', (porcentaje,))
+        await db.commit()
+    
+    embed = embeds.crear_embed_exito(f"✅ Porcentaje de cashback actualizado a **{porcentaje}%**")
+    await ctx.send(embed=embed)
+    await bot.enviar_log_sistema("⚙️ **CASHBACK**", f"Porcentaje cambiado a {porcentaje}% por {ctx.author.name}")
+
+@bot.command(name="pagarcashback")
+async def cmd_pagar_cashback(ctx):
+    """[CEO] Paga el cashback acumulado a todos los usuarios"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    await ctx.send("💰 **PROCESANDO PAGOS DE CASHBACK...**")
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT usuario_id, cashback_acumulado FROM cashback WHERE cashback_acumulado > 0
+        ''')
+        usuarios = await cursor.fetchall()
+        
+        if not usuarios:
+            await ctx.send(embed=embeds.crear_embed_error("No hay cashback para pagar"))
+            return
+        
+        total_pagado = 0
+        pagados = 0
+        
+        for usuario in usuarios:
+            monto = usuario['cashback_acumulado']
+            
+            await db.execute('''
+                INSERT INTO usuarios_balance (discord_id, nombre, balance)
+                VALUES (?, (SELECT nombre FROM clientes WHERE discord_id = ?), ?)
+                ON CONFLICT(discord_id) DO UPDATE SET
+                    balance = balance + ?,
+                    ultima_actualizacion = CURRENT_TIMESTAMP
+            ''', (usuario['usuario_id'], usuario['usuario_id'], monto, monto))
+            
+            await db.execute('''
+                UPDATE cashback SET 
+                    cashback_recibido = cashback_recibido + ?,
+                    cashback_acumulado = 0,
+                    ultima_actualizacion = CURRENT_TIMESTAMP
+                WHERE usuario_id = ?
+            ''', (monto, usuario['usuario_id']))
+            
+            total_pagado += monto
+            pagados += 1
+        
+        await db.commit()
+    
+    embed = discord.Embed(
+        title="✅ **CASHBACK PAGADO**",
+        description=f"Se pagaron **${total_pagado:,} VP$** a **{pagados} usuarios**",
+        color=config.COLORS['success']
+    )
+    await ctx.send(embed=embed)
+    await bot.enviar_log_sistema("💰 **PAGO CASHBACK**", f"{ctx.author.name} pagó ${total_pagado:,} VP$ a {pagados} usuarios")
+
+# ============================================
+# COMANDOS DE ESTADÍSTICAS (CORREGIDOS)
+# ============================================
+
+@bot.command(name="estadisticas")
+async def cmd_estadisticas(ctx):
+    """Ver estadísticas globales del sistema"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    try:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            cursor = await db.execute('SELECT COUNT(*) FROM rifas')
+            total_rifas = (await cursor.fetchone())[0]
+            
+            cursor = await db.execute('SELECT COUNT(*) FROM boletos')
+            total_boletos = (await cursor.fetchone())[0]
+            
+            cursor = await db.execute('SELECT SUM(precio_pagado) FROM boletos')
+            total_recaudado = (await cursor.fetchone())[0] or 0
+            
+            cursor = await db.execute('SELECT COUNT(*) FROM clientes')
+            total_clientes = (await cursor.fetchone())[0]
+            
+            cursor = await db.execute('SELECT COUNT(*) FROM vendedores')
+            total_vendedores = (await cursor.fetchone())[0]
+            
+            cursor = await db.execute('SELECT SUM(balance) FROM usuarios_balance')
+            total_vp_circulacion = (await cursor.fetchone())[0] or 0
+            
+            cursor = await db.execute('SELECT SUM(cashback_acumulado) FROM cashback')
+            total_cashback_pendiente = (await cursor.fetchone())[0] or 0
+    
+        embed = discord.Embed(
+            title="📊 **ESTADÍSTICAS GLOBALES**",
+            color=config.COLORS['primary']
+        )
+        
+        embed.add_field(name="🎟️ Total rifas", value=f"**{total_rifas}**", inline=True)
+        embed.add_field(name="🎲 Total boletos", value=f"**{total_boletos}**", inline=True)
+        embed.add_field(name="💰 Total recaudado", value=f"**${total_recaudado:,}**", inline=True)
+        embed.add_field(name="👥 Clientes", value=f"**{total_clientes}**", inline=True)
+        embed.add_field(name="🛒 Vendedores", value=f"**{total_vendedores}**", inline=True)
+        embed.add_field(name="💵 VP$ en circulación", value=f"**{total_vp_circulacion:,}**", inline=True)
+        embed.add_field(name="💸 Cashback pendiente", value=f"**${total_cashback_pendiente:,}**", inline=True)
+        
+        uptime = datetime.now() - start_time
+        horas = uptime.total_seconds() // 3600
+        minutos = (uptime.total_seconds() % 3600) // 60
+        
+        embed.add_field(name="⏰ Uptime", value=f"**{int(horas)}h {int(minutos)}m**", inline=True)
+        embed.add_field(name="🤖 Versión", value=f"**{VERSION}**", inline=True)
+        
+        await ctx.send(embed=embed)
+    except Exception as e:
+        logger.error(f"Error en comando estadisticas: {e}")
+        await ctx.send(embed=embeds.crear_embed_error(f"Error al obtener estadísticas: {str(e)}"))
+
+@bot.command(name="auditoria")
+async def cmd_auditoria(ctx):
+    """Ver todas las transacciones recientes"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    try:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute('''
+                SELECT t.tipo, t.monto, t.descripcion, t.fecha,
+                       u1.nombre as origen_nombre,
+                       u2.nombre as destino_nombre
+                FROM transacciones t
+                LEFT JOIN clientes u1 ON t.origen_id = u1.discord_id
+                LEFT JOIN clientes u2 ON t.destino_id = u2.discord_id
+                ORDER BY t.fecha DESC
+                LIMIT 20
+            ''')
+            transacciones = await cursor.fetchall()
+            
+            cursor = await db.execute('SELECT SUM(monto) FROM transacciones WHERE tipo = "compra"')
+            total = (await cursor.fetchone())[0] or 0
+        
+        embed = discord.Embed(
+            title="📋 **AUDITORÍA GENERAL**",
+            description=f"💰 Total recaudado: **${total:,} VP$**",
+            color=config.COLORS['primary']
+        )
+        
+        for t in transacciones[:10]:
+            embed.add_field(
+                name=f"{t['fecha'][:10]} - {t['tipo']}",
+                value=f"${t['monto']:,} - {t['descripcion'] or 'Sin descripción'}",
+                inline=False
+            )
+        
+        embed.set_footer(text=f"Mostrando 10 de {len(transacciones)} transacciones")
+        await ctx.send(embed=embed)
+    except Exception as e:
+        logger.error(f"Error en comando auditoria: {e}")
+        await ctx.send(embed=embeds.crear_embed_error(f"Error al obtener auditoría: {str(e)}"))
+
+@bot.command(name="exportar")
+async def cmd_exportar(ctx):
+    """Exportar datos a CSV"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    try:
+        fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+        archivo = f"/tmp/vp_rifas_export_{fecha}.csv"
+        
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute('''
+                SELECT b.numero, r.nombre as rifa, b.comprador_nick, 
+                       b.vendedor_id, b.precio_pagado, b.fecha_compra
+                FROM boletos b
+                JOIN rifas r ON b.rifa_id = r.id
+                ORDER BY b.fecha_compra DESC
+            ''')
+            boletos = await cursor.fetchall()
+        
+        with open(archivo, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Número', 'Rifa', 'Comprador', 'Vendedor ID', 'Precio', 'Fecha'])
+            for b in boletos:
+                writer.writerow([b['numero'], b['rifa'], b['comprador_nick'], 
+                               b['vendedor_id'], b['precio_pagado'], b['fecha_compra']])
+        
+        # Enviar archivo por DM
+        await ctx.author.send(file=discord.File(archivo))
+        await ctx.send(embed=embeds.crear_embed_exito("✅ Datos exportados. Revisa tu DM."))
+        await enviar_log(ctx, "📊 EXPORTAR", f"{ctx.author.name} exportó datos")
+        
+        # Limpiar archivo temporal
+        os.remove(archivo)
+    except Exception as e:
+        logger.error(f"Error en comando exportar: {e}")
+        await ctx.send(embed=embeds.crear_embed_error(f"Error al exportar: {str(e)}"))
+
+@bot.command(name="backup")
+async def cmd_backup(ctx):
+    """Crear backup de la base de datos"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    try:
+        fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_path = f"/tmp/rifas_backup_{fecha}.db"
+        
+        shutil.copy2(bot.db.db_path, backup_path)
+        
+        # Enviar backup por DM
+        await ctx.author.send(file=discord.File(backup_path))
+        await ctx.send(embed=embeds.crear_embed_exito("✅ Backup creado. Revisa tu DM."))
+        await enviar_log(ctx, "💾 BACKUP", f"{ctx.author.name} creó backup")
+        
+        # Limpiar archivo temporal
+        os.remove(backup_path)
+    except Exception as e:
+        logger.error(f"Error en comando backup: {e}")
+        await ctx.send(embed=embeds.crear_embed_error(f"Error al crear backup: {str(e)}"))
+
+# ============================================
+# COMANDOS DE REINICIO
+# ============================================
 
 @bot.command(name="resetallsistema")
 async def cmd_reset_all_sistema(ctx):
-    """[CEO] REINICIA TODO EL SISTEMA - Borra todas las rifas, boletos, balances y historial"""
+    """[CEO] REINICIA TODO EL SISTEMA"""
     global reset_pending
     
     if not await check_ceo(ctx):
         await ctx.send("❌ Solo el CEO puede usar este comando")
         return
     
-    # Mensaje de confirmación (requiere doble confirmación)
     embed_confirm = discord.Embed(
-        title="⚠️ ¡ATENCIÓN! REINICIO TOTAL DEL SISTEMA",
+        title="⚠️ **¡ATENCIÓN! REINICIO TOTAL DEL SISTEMA**",
         description="Estás a punto de **BORRAR PERMANENTEMENTE** todo:\n\n"
                     "• Todas las rifas\n"
                     "• Todos los boletos\n"
                     "• Todos los balances de VP$\n"
-                    "• Todo el historial de transacciones\n"
-                    "• Todos los clientes y vendedores\n\n"
+                    "• Todo el historial\n\n"
                     "**Esta acción NO SE PUEDE DESHACER.**",
         color=config.COLORS['error']
     )
@@ -930,8 +2187,8 @@ async def cmd_reset_all_sistema(ctx):
     
     await ctx.send(embed=embed_confirm)
     
-    # Guardar el ID del usuario para la confirmación
     reset_pending = {
+        'tipo': 'sistema',
         'usuario_id': ctx.author.id,
         'canal_id': ctx.channel.id,
         'timestamp': datetime.now().timestamp()
@@ -946,22 +2203,20 @@ async def cmd_confirmar_reset(ctx):
         await ctx.send("❌ Solo el CEO puede usar este comando")
         return
     
-    if not reset_pending or reset_pending.get('usuario_id') != ctx.author.id:
-        await ctx.send(embed=embeds.crear_embed_error("❌ No hay ninguna solicitud de reinicio pendiente para ti"))
+    if not reset_pending or reset_pending.get('tipo') != 'sistema' or reset_pending.get('usuario_id') != ctx.author.id:
+        await ctx.send(embed=embeds.crear_embed_error("❌ No hay ninguna solicitud de reinicio pendiente"))
         return
     
-    # Verificar tiempo (30 segundos)
     tiempo_actual = datetime.now().timestamp()
     if tiempo_actual - reset_pending['timestamp'] > 30:
         reset_pending = None
-        await ctx.send(embed=embeds.crear_embed_error("⏰ Tiempo de confirmación expirado (30 segundos). Ejecuta !resetallsistema nuevamente"))
+        await ctx.send(embed=embeds.crear_embed_error("⏰ Tiempo de confirmación expirado (30 segundos)"))
         return
     
     await ctx.send("🔄 **REINICIANDO TODO EL SISTEMA...**")
     
     try:
         async with aiosqlite.connect(bot.db.db_path) as db:
-            # Borrar todas las tablas (en orden por las foreign keys)
             await db.execute("DELETE FROM transacciones")
             await db.execute("DELETE FROM apartados")
             await db.execute("DELETE FROM boletos")
@@ -970,255 +2225,54 @@ async def cmd_confirmar_reset(ctx):
             await db.execute("DELETE FROM usuarios_balance")
             await db.execute("DELETE FROM rifas")
             await db.execute("DELETE FROM logs")
-            
-            # Resetear los autoincrement
+            await db.execute("DELETE FROM referidos_codigos")
+            await db.execute("DELETE FROM referidos_relaciones")
+            await db.execute("DELETE FROM referidos_comisiones")
+            await db.execute("DELETE FROM fidelizacion")
+            await db.execute("DELETE FROM cashback")
             await db.execute("DELETE FROM sqlite_sequence")
-            
             await db.commit()
         
         reset_pending = None
         
         embed = discord.Embed(
-            title="✅ SISTEMA REINICIADO COMPLETAMENTE",
-            description="Todos los datos han sido eliminados:\n"
-                        "• ✅ Rifas eliminadas\n"
-                        "• ✅ Boletos eliminados\n"
-                        "• ✅ Balances VP$ eliminados\n"
-                        "• ✅ Historial eliminado\n"
-                        "• ✅ Clientes eliminados\n\n"
-                        "El sistema está como nuevo.",
+            title="✅ **SISTEMA REINICIADO COMPLETAMENTE**",
+            description="Todos los datos han sido eliminados",
             color=config.COLORS['success']
         )
         await ctx.send(embed=embed)
-        
-        # Log de la acción
         await enviar_log(ctx, "💣 REINICIO TOTAL", f"{ctx.author.name} reinició TODO el sistema")
+        await bot.enviar_log_sistema("💣 **REINICIO TOTAL**", f"Sistema reiniciado por {ctx.author.name}")
         
     except Exception as e:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error durante el reinicio: {str(e)}"))
+        logger.error(f"Error en reset: {e}")
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error: {str(e)}"))
 
-@bot.command(name="resetboletosusuario")
-async def cmd_reset_boletos_usuario(ctx, usuario: discord.Member):
-    """[CEO] Reinicia todos los boletos de un usuario específico"""
-    global reset_user_pending
-    
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    # Verificar cuántos boletos tiene el usuario
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        cursor = await db.execute('''
-            SELECT COUNT(*) FROM boletos WHERE comprador_id = ?
-        ''', (str(usuario.id),))
-        total_boletos = (await cursor.fetchone())[0]
-        
-        cursor = await db.execute('''
-            SELECT SUM(precio_pagado) FROM boletos WHERE comprador_id = ?
-        ''', (str(usuario.id),))
-        total_gastado = (await cursor.fetchone())[0] or 0
-        
-        cursor = await db.execute('''
-            SELECT balance FROM usuarios_balance WHERE discord_id = ?
-        ''', (str(usuario.id),))
-        balance_result = await cursor.fetchone()
-        balance_actual = balance_result[0] if balance_result else 0
-    
-    if total_boletos == 0:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ {usuario.name} no tiene boletos en el sistema"))
-        return
-    
-    # Mensaje de confirmación
-    embed_confirm = discord.Embed(
-        title="⚠️ CONFIRMAR REINICIO DE BOLETOS",
-        description=f"Usuario: {usuario.mention}\n"
-                    f"Boletos a eliminar: **{total_boletos}**\n"
-                    f"Total gastado: **${total_gastado:,}**\n"
-                    f"Balance actual VP$: **{balance_actual}**\n\n"
-                    f"**¿Qué pasará?**\n"
-                    f"• Todos sus boletos serán ELIMINADOS\n"
-                    f"• Su balance VP$ será RESETEADO a 0\n"
-                    f"• Su historial de compras será BORRADO\n\n"
-                    f"Escribe `!confirmarresetuser {usuario.id}` para confirmar",
-        color=config.COLORS['error']
-    )
-    
-    await ctx.send(embed=embed_confirm)
-    
-    # Guardar datos para confirmación
-    reset_user_pending = {
-        'usuario_id': ctx.author.id,
-        'target_id': usuario.id,
-        'target_name': usuario.name,
-        'canal_id': ctx.channel.id,
-        'timestamp': datetime.now().timestamp()
-    }
+# ============================================
+# COMANDO DE VERSIÓN
+# ============================================
 
-@bot.command(name="confirmarresetuser")
-async def cmd_confirmar_reset_user(ctx, usuario_id: str):
-    """Confirma el reinicio de boletos de un usuario"""
-    global reset_user_pending
-    
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    if not reset_user_pending or reset_user_pending.get('usuario_id') != ctx.author.id:
-        await ctx.send(embed=embeds.crear_embed_error("❌ No hay ninguna solicitud de reinicio pendiente para ti"))
-        return
-    
-    if str(reset_user_pending.get('target_id')) != usuario_id:
-        await ctx.send(embed=embeds.crear_embed_error("❌ El ID de usuario no coincide con la solicitud pendiente"))
-        return
-    
-    # Verificar tiempo (30 segundos)
-    tiempo_actual = datetime.now().timestamp()
-    if tiempo_actual - reset_user_pending['timestamp'] > 30:
-        reset_user_pending = None
-        await ctx.send(embed=embeds.crear_embed_error("⏰ Tiempo de confirmación expirado (30 segundos). Ejecuta !resetboletosusuario nuevamente"))
-        return
-    
-    await ctx.send(f"🔄 **REINICIANDO BOLETOS DE {reset_user_pending['target_name']}...**")
-    
-    try:
-        async with aiosqlite.connect(bot.db.db_path) as db:
-            # Eliminar boletos del usuario
-            await db.execute('''
-                DELETE FROM boletos WHERE comprador_id = ?
-            ''', (usuario_id,))
-            
-            # Resetear balance a 0
-            await db.execute('''
-                UPDATE usuarios_balance SET balance = 0 WHERE discord_id = ?
-            ''', (usuario_id,))
-            
-            await db.commit()
-        
-        reset_user_pending = None
-        
-        embed = discord.Embed(
-            title="✅ BOLETOS REINICIADOS",
-            description=f"Se han eliminado todos los boletos de <@{usuario_id}> y su balance VP$ se ha reseteado a 0.",
-            color=config.COLORS['success']
-        )
-        await ctx.send(embed=embed)
-        
-        # Log de la acción
-        await enviar_log(ctx, "🔄 REINICIO DE USUARIO", f"{ctx.author.name} reinició los boletos de <@{usuario_id}>")
-        
-    except Exception as e:
-        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error durante el reinicio: {str(e)}"))
-
-@bot.command(name="auditoria")
-async def cmd_auditoria(ctx):
-    """Ver todas las transacciones"""
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute('''
-            SELECT t.tipo, t.monto, t.descripcion, t.fecha,
-                   u1.nombre as origen_nombre,
-                   u2.nombre as destino_nombre
-            FROM transacciones t
-            LEFT JOIN clientes u1 ON t.origen_id = u1.discord_id
-            LEFT JOIN clientes u2 ON t.destino_id = u2.discord_id
-            ORDER BY t.fecha DESC
-            LIMIT 20
-        ''')
-        transacciones = await cursor.fetchall()
-        
-        cursor = await db.execute('SELECT SUM(monto) FROM transacciones WHERE tipo = "compra"')
-        total = (await cursor.fetchone())[0] or 0
+@bot.command(name="version")
+async def cmd_version(ctx):
+    """Muestra la versión del bot"""
+    uptime = datetime.now() - start_time
+    horas = uptime.total_seconds() // 3600
+    minutos = (uptime.total_seconds() % 3600) // 60
     
     embed = discord.Embed(
-        title="📋 AUDITORÍA GENERAL",
-        description=f"💰 Total recaudado: ${total:,}",
+        title="🤖 **VP RIFAS BOT**",
+        description=f"**Versión:** `{VERSION}`\n"
+                    f"**Estado:** 🟢 Activo\n"
+                    f"**Uptime:** {int(horas)}h {int(minutos)}m\n"
+                    f"**Servidores:** {len(bot.guilds)}\n"
+                    f"**Usuarios:** {len(bot.users)}",
         color=config.COLORS['primary']
     )
-    
-    for t in transacciones[:10]:
-        embed.add_field(
-            name=f"{t['fecha'][:10]} - {t['tipo']}",
-            value=f"${t['monto']:,} - {t['descripcion'] or 'Sin descripción'}",
-            inline=False
-        )
-    
-    embed.set_footer(text=f"Mostrando 10 de {len(transacciones)} transacciones")
     await ctx.send(embed=embed)
 
-@bot.command(name="exportar")
-async def cmd_exportar(ctx):
-    """Exportar datos a CSV"""
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
-    archivo = f"/sdcard/Download/vp_rifas_export_{fecha}.csv"
-    
-    async with aiosqlite.connect(bot.db.db_path) as db:
-        db.row_factory = aiosqlite.Row
-        
-        cursor = await db.execute('''
-            SELECT b.numero, r.nombre as rifa, b.comprador_nick, 
-                   b.vendedor_id, b.precio_pagado, b.fecha_compra
-            FROM boletos b
-            JOIN rifas r ON b.rifa_id = r.id
-            ORDER BY b.fecha_compra DESC
-        ''')
-        boletos = await cursor.fetchall()
-    
-    with open(archivo, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['Número', 'Rifa', 'Comprador', 'Vendedor ID', 'Precio', 'Fecha'])
-        for b in boletos:
-            writer.writerow([b['numero'], b['rifa'], b['comprador_nick'], 
-                           b['vendedor_id'], b['precio_pagado'], b['fecha_compra']])
-    
-    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Datos exportados a:\n{archivo}"))
-    await enviar_log(ctx, "📊 EXPORTAR", f"{ctx.author.name} exportó datos a CSV")
-
-@bot.command(name="backup")
-async def cmd_backup(ctx):
-    """Crear backup de la base de datos"""
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = f"backups/rifas_backup_{fecha}.db"
-    
-    shutil.copy2(bot.db.db_path, backup_path)
-    
-    embed = embeds.crear_embed_exito(f"✅ Backup creado: {backup_path}")
-    await ctx.send(embed=embed)
-    await enviar_log(ctx, "💾 BACKUP", f"{ctx.author.name} creó backup: {backup_path}")
-
-@bot.command(name="estadisticas")
-async def cmd_estadisticas(ctx):
-    """Ver estadísticas globales"""
-    if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
-        return
-    
-    stats = await bot.db.get_estadisticas()
-    
-    embed = discord.Embed(
-        title="📊 ESTADÍSTICAS GLOBALES",
-        color=config.COLORS['primary']
-    )
-    
-    embed.add_field(name="🎟️ Total rifas", value=stats['total_rifas'], inline=True)
-    embed.add_field(name="💰 Total recaudado", value=f"${stats['total_recaudado']:,}", inline=True)
-    embed.add_field(name="👥 Total clientes", value=stats['total_clientes'], inline=True)
-    embed.add_field(name="🎲 Total boletos", value=stats['total_boletos'], inline=True)
-    
-    await ctx.send(embed=embed)
-
-# ===== COMANDO DE AYUDA =====
+# ============================================
+# COMANDO DE AYUDA (ACTUALIZADO)
+# ============================================
 
 @bot.command(name="ayuda")
 async def cmd_ayuda(ctx):
@@ -1233,66 +2287,143 @@ async def cmd_ayuda(ctx):
     es_vendedor = tiene_rol(member, config.ROLES['RIFAS'])
     
     embed = discord.Embed(
-        title="🎟️ SISTEMA DE RIFAS VP - AYUDA",
-        description=f"Comandos disponibles según tu rol (prefijo: `{PREFIX}`)",
+        title="🎟️ **SISTEMA DE RIFAS VP**",
+        description=f"Comandos disponibles (prefijo: `{PREFIX}`)\nVersión: {VERSION}",
         color=config.COLORS['primary']
     )
     
-    comandos_base = """
+    # Comandos básicos (actualizados)
+    basicos = """
     `!rifa` - Ver rifa activa
-    `!comprar [número]` - Comprar boleto específico
-    `!comprarrandom [cantidad]` - Comprar boletos aleatorios
+    `!comprarrandom [cantidad]` - Comprar boletos aleatorios (única forma)
     `!misboletos` - Ver tus boletos
-    `!disponibles` - Ver números libres
-    `!ranking` - Top compradores
-    `!historial` - Tu historial de compras
-    `!balance` - Ver tu balance de VP$
+    `!balance` - Ver tu balance VP$
     `!topvp` - Ranking de VP$
-    `!ayuda` - Mostrar esta ayuda
     """
-    embed.add_field(name="👤 TODOS LOS USUARIOS", value=comandos_base, inline=False)
+    embed.add_field(name="👤 **BÁSICOS**", value=basicos, inline=False)
+    
+    # Sistema de referidos
+    referidos = """
+    `!codigo` - Tu código de referido
+    `!usar [código]` - Usar código de referido (solo una vez)
+    `!misreferidos` - Ver tus referidos
+    """
+    embed.add_field(name="🤝 **REFERIDOS**", value=referidos, inline=False)
+    
+    # Fidelización y cashback
+    fidelizacion = """
+    `!nivel` - Tu nivel y beneficios
+    `!topgastadores` - Ranking de gasto
+    `!cashback` - Tu cashback acumulado
+    `!topcashback` - Ranking cashback
+    """
+    embed.add_field(name="🏆 **FIDELIZACIÓN**", value=fidelizacion, inline=False)
     
     if es_vendedor or es_director or es_ceo:
-        comandos_vendedor = """
-        `!vender [@usuario] [número]` - Vender boleto
+        vendedor = """
+        `!venderrandom [@usuario] [cantidad]` - Vender aleatorios
         `!misventas` - Ver tus ventas
+        `!listaboletos` - Lista de boletos (staff)
         """
-        embed.add_field(name="💰 VENDEDORES", value=comandos_vendedor, inline=False)
+        embed.add_field(name="💰 **VENDEDORES**", value=vendedor, inline=False)
     
     if es_director or es_ceo:
-        comandos_director = """
+        director = """
         `!crearifa [nombre] [premio] [valor] [precio] [total]` - Crear rifa
-        `!aumentarnumeros [cantidad]` - Agregar más boletos a la rifa activa
-        `!cerrarifa` - Cerrar rifa actual
-        `!sorteo [número]` - Realizar sorteo
-        `!vendedoradd [@usuario] [comision]` - Añadir vendedor
+        `!aumentarnumeros [cantidad]` - Ampliar rifa
+        `!cerrarifa` - Cerrar rifa
+        `!iniciarsorteo [ganadores]` - Iniciar sorteo
+        `!cancelarsorteo` - Cancelar sorteo
+        `!finalizarrifa [id] [ganadores]` - Finalizar rifa
+        `!vendedoradd [@usuario] [%]` - Añadir vendedor
         `!pagarcomisiones` - Ver comisiones pendientes
         `!confirmarpago [@usuario]` - Pagar comisiones
-        `!reporte` - Ver reporte de rifa
-        `!alertar [mensaje]` - Enviar alerta a todos
         """
-        embed.add_field(name="🎯 DIRECTORES", value=comandos_director, inline=False)
+        embed.add_field(name="🎯 **DIRECTORES**", value=director, inline=False)
     
     if es_ceo:
-        comandos_ceo = """
+        ceo = """
         `!acreditarvp [@usuario] [cantidad]` - Acreditar VP$
         `!retirarvp [@usuario] [cantidad]` - Retirar VP$
-        `!resetallsistema` - REINICIAR TODO EL SISTEMA
-        `!resetboletosusuario [@usuario]` - Reiniciar boletos de un usuario
-        `!auditoria` - Ver todas las transacciones
-        `!exportar` - Exportar datos a CSV
-        `!backup` - Crear backup de BD
+        `!setrefcomision [%]` - Configurar comisión referidos
+        `!setrefdescuento [%]` - Configurar descuento referidos
+        `!setcashback [%]` - Configurar % cashback
+        `!pagarcashback` - Pagar cashback
         `!estadisticas` - Estadísticas globales
+        `!auditoria` - Ver transacciones
+        `!exportar` - Exportar a CSV
+        `!backup` - Crear backup
+        `!resetallsistema` - Reiniciar sistema
+        `!version` - Versión del bot
         """
-        embed.add_field(name="👑 CEO", value=comandos_ceo, inline=False)
+        embed.add_field(name="👑 **CEO**", value=ceo, inline=False)
     
-    embed.set_footer(text="Ejemplo: !comprar 25")
+    embed.set_footer(text="Ejemplo: !comprarrandom 3")
     await ctx.send(embed=embed)
 
-# ===== EJECUTAR BOT =====
+# ============================================
+# EJECUCIÓN DEL BOT
+# ============================================
+
+def run_bot_with_reconnect():
+    """Ejecuta el bot con reconexión automática"""
+    global reconnect_attempts
+    
+    print("\n" + "="*50)
+    print(f"🚀 INICIANDO BOT VP RIFAS v{VERSION}")
+    print("="*50 + "\n")
+    
+    while True:
+        try:
+            reconnect_attempts += 1
+            print(f"📡 Intento de conexión #{reconnect_attempts}")
+            bot.run(config.BOT_TOKEN, reconnect=True)
+            
+        except discord.errors.HTTPException as e:
+            if e.status == 429:
+                retry_after = e.response.headers.get('Retry-After', 60)
+                print(f"⚠️ Rate limited. Esperando {retry_after} segundos...")
+                time.sleep(int(retry_after))
+            else:
+                print(f"❌ Error HTTP: {e}")
+                time.sleep(10)
+                
+        except discord.errors.GatewayNotFound:
+            print("❌ Gateway no encontrado. Reintentando en 10 segundos...")
+            time.sleep(10)
+            
+        except discord.errors.ConnectionClosed:
+            print("❌ Conexión cerrada. Reintentando en 5 segundos...")
+            time.sleep(5)
+            
+        except discord.errors.PrivilegedIntentsRequired:
+            print("❌ ERROR CRÍTICO: Intents privilegiados no activados")
+            time.sleep(30)
+            
+        except KeyboardInterrupt:
+            print("\n👋 Bot detenido por el usuario")
+            break
+            
+        except Exception as e:
+            print(f"❌ Error inesperado: {e}")
+            traceback.print_exc()
+            time.sleep(10)
+        
+        print(f"🔄 Reintentando conexión en 5 segundos... (intento #{reconnect_attempts})")
+        time.sleep(5)
 
 if __name__ == "__main__":
     try:
-        bot.run(config.BOT_TOKEN)
+        if not config.BOT_TOKEN:
+            print("❌ ERROR: No se encontró BOT_TOKEN en config.py")
+            sys.exit(1)
+        
+        os.makedirs(os.path.dirname(config.LOG_PATH), exist_ok=True)
+        
+        run_bot_with_reconnect()
+        
+    except KeyboardInterrupt:
+        print("\n👋 Bot detenido por el usuario")
     except Exception as e:
-        logger.error(f"Error al iniciar el bot: {e}")
+        print(f"❌ Error fatal: {e}")
+        traceback.print_exc()
