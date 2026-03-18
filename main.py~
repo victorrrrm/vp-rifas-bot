@@ -1,0 +1,1298 @@
+import discord
+from discord.ext import commands
+import asyncio
+import logging
+import random
+import aiosqlite
+import csv
+import shutil
+from datetime import datetime
+import config
+from src.database.database import Database
+import src.utils.embeds as embeds
+
+# Variables globales para confirmaciones
+reset_pending = None
+reset_user_pending = None
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(config.LOG_PATH),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Intents
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+# Prefijo del bot
+PREFIX = "!"
+
+class VPRifasBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix=PREFIX,
+            intents=intents,
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f"{PREFIX}ayuda | Rifas VP"
+            )
+        )
+        self.db = Database()
+    
+    async def setup_hook(self):
+        logger.info("Iniciando configuración...")
+        await self.db.init_db()
+        logger.info("✅ Base de datos inicializada")
+    
+    async def on_ready(self):
+        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
+        logger.info(f"🌐 En {len(self.guilds)} servidores")
+
+bot = VPRifasBot()
+
+# ===== FUNCIÓN DE LOGS =====
+async def enviar_log(ctx, accion, detalles):
+    """Envía un log al canal de logs"""
+    try:
+        canal_logs = bot.get_channel(1482849207290429461)
+        if not canal_logs:
+            return
+        
+        embed = discord.Embed(
+            title=f"📋 {accion}",
+            description=detalles,
+            color=0x0099FF,
+            timestamp=datetime.now()
+        )
+        embed.add_field(name="👤 Usuario", value=ctx.author.name, inline=True)
+        embed.add_field(name="📌 Canal", value=ctx.channel.name, inline=True)
+        
+        await canal_logs.send(embed=embed)
+    except Exception as e:
+        print(f"Error enviando log: {e}")
+
+# ===== FUNCIONES DE VERIFICACIÓN =====
+
+async def verificar_canal(ctx):
+    """Verifica si el comando se ejecuta en un canal de la categoría de rifas"""
+    if not ctx.guild:
+        await ctx.send("❌ Este comando solo funciona en servidores")
+        return False
+    
+    if ctx.channel.category_id != config.CATEGORIA_RIFAS:
+        await ctx.send(f"❌ Este comando solo puede usarse en canales de la categoría <#{config.CATEGORIA_RIFAS}>")
+        return False
+    return True
+
+def tiene_rol(miembro, role_id):
+    return any(role.id == role_id for role in miembro.roles)
+
+async def check_admin(ctx):
+    """Verificar si el usuario es admin (CEO o Director)"""
+    if not ctx.guild:
+        return False
+    member = ctx.guild.get_member(ctx.author.id)
+    if not member:
+        return False
+    return (tiene_rol(member, config.ROLES['CEO']) or 
+            tiene_rol(member, config.ROLES['DIRECTOR']))
+
+async def check_vendedor(ctx):
+    """Verificar si el usuario es vendedor (Rifas o superior)"""
+    if not ctx.guild:
+        return False
+    member = ctx.guild.get_member(ctx.author.id)
+    if not member:
+        return False
+    return (tiene_rol(member, config.ROLES['CEO']) or 
+            tiene_rol(member, config.ROLES['DIRECTOR']) or 
+            tiene_rol(member, config.ROLES['RIFAS']))
+
+async def check_ceo(ctx):
+    """Verificar si el usuario es CEO"""
+    if not ctx.guild:
+        return False
+    member = ctx.guild.get_member(ctx.author.id)
+    if not member:
+        return False
+    return tiene_rol(member, config.ROLES['CEO'])
+
+# ===== COMANDOS DE USUARIO =====
+
+@bot.command(name="rifa")
+async def cmd_rifa(ctx):
+    """Ver la rifa activa actual"""
+    if not await verificar_canal(ctx):
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay ninguna rifa activa en este momento."))
+        return
+    
+    vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    
+    embed = embeds.crear_embed_rifa(rifa_activa, vendidos, disponibles)
+    await ctx.send(embed=embed)
+
+@bot.command(name="comprar")
+async def cmd_comprar(ctx, numero: int):
+    """Comprar un boleto específico"""
+    if not await verificar_canal(ctx):
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    if numero < 1 or numero > rifa_activa['total_boletos']:
+        await ctx.send(embed=embeds.crear_embed_error(f"Número inválido. Debe ser entre 1 y {rifa_activa['total_boletos']}"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    if numero not in disponibles:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ El número {numero} ya no está disponible."))
+        return
+    
+    exito, mensaje = await bot.db.comprar_boleto(
+        rifa_activa['id'],
+        numero,
+        str(ctx.author.id),
+        ctx.author.name,
+        None
+    )
+    
+    if exito:
+        await ctx.send(embed=embeds.crear_embed_exito(f"✅ ¡Boleto #{numero} comprado!\n\nTotal: ${rifa_activa['precio_boleto']:,}\n\nUn staff confirmará tu pago."))
+        await ctx.send(f"🎟️ **{ctx.author.name}** acaba de comprar el boleto **#{numero}**")
+        await enviar_log(ctx, "🎟️ COMPRA", f"{ctx.author.name} compró el boleto #{numero}")
+    else:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error: {mensaje}"))
+
+@bot.command(name="comprarrandom")
+async def cmd_comprar_random(ctx, cantidad: int):
+    """Comprar boletos aleatorios"""
+    if not await verificar_canal(ctx):
+        return
+    
+    if cantidad < 1 or cantidad > config.MAX_BOLETOS_POR_COMPRA:
+        await ctx.send(embed=embeds.crear_embed_error(f"Cantidad inválida. Máximo {config.MAX_BOLETOS_POR_COMPRA}"))
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    if len(disponibles) < cantidad:
+        await ctx.send(embed=embeds.crear_embed_error(f"Solo hay {len(disponibles)} boletos disponibles"))
+        return
+    
+    seleccionados = random.sample(disponibles, cantidad)
+    
+    comprados = []
+    for num in seleccionados:
+        exito, _ = await bot.db.comprar_boleto(
+            rifa_activa['id'],
+            num,
+            str(ctx.author.id),
+            ctx.author.name,
+            None
+        )
+        if exito:
+            comprados.append(num)
+    
+    if comprados:
+        await ctx.send(embed=embeds.crear_embed_exito(f"✅ Boletos comprados: {', '.join(map(str, comprados))}\nTotal: ${len(comprados) * rifa_activa['precio_boleto']:,}"))
+        await ctx.send(f"🎟️ **{ctx.author.name}** acaba de comprar {len(comprados)} boletos: {', '.join(map(str, comprados))}")
+        await enviar_log(ctx, "🎟️ COMPRA MÚLTIPLE", f"{ctx.author.name} compró {len(comprados)} boletos: {', '.join(map(str, comprados))}")
+    else:
+        await ctx.send(embed=embeds.crear_embed_error("No se pudo comprar ningún boleto"))
+
+@bot.command(name="misboletos")
+async def cmd_mis_boletos(ctx):
+    """Ver tus boletos en la rifa actual"""
+    if not await verificar_canal(ctx):
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT numero, fecha_compra, estado 
+            FROM boletos 
+            WHERE rifa_id = ? AND comprador_id = ?
+        ''', (rifa_activa['id'], str(ctx.author.id)))
+        boletos = await cursor.fetchall()
+    
+    if not boletos:
+        await ctx.send(embed=embeds.crear_embed_error("No tienes boletos en esta rifa"))
+        return
+    
+    embed = discord.Embed(
+        title=f"🎟️ Tus boletos - Rifa #{rifa_activa['id']}",
+        color=config.COLORS['primary']
+    )
+    
+    lista = "\n".join([f"• #{b['numero']} - {b['fecha_compra'][:10]}" for b in boletos])
+    embed.description = lista
+    embed.set_footer(text=f"Total: {len(boletos)} boletos")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="disponibles")
+async def cmd_boletos_disponibles(ctx):
+    """Ver números disponibles"""
+    if not await verificar_canal(ctx):
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    
+    if not disponibles:
+        await ctx.send(embed=embeds.crear_embed_info("🎟️ Boletos disponibles", "**¡No quedan boletos disponibles!**\nEl sorteo será pronto."))
+        return
+    
+    total = rifa_activa['total_boletos']
+    matriz = []
+    for i in range(1, total + 1, 10):
+        fila = []
+        for j in range(10):
+            num = i + j
+            if num <= total:
+                if num in disponibles:
+                    fila.append(f"`{num:03d}`")
+                else:
+                    fila.append(f"~~`{num:03d}`~~")
+        matriz.append(" ".join(fila))
+    
+    embed = discord.Embed(
+        title=f"🎟️ Boletos disponibles ({len(disponibles)}/{total})",
+        description="\n".join(matriz[:5]),
+        color=config.COLORS['info']
+    )
+    embed.set_footer(text="Usa !comprar [número] para participar")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="ranking")
+async def cmd_ranking(ctx):
+    """Ver top compradores"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT nombre, total_compras, total_gastado 
+            FROM clientes 
+            ORDER BY total_gastado DESC 
+            LIMIT 10
+        ''')
+        usuarios = await cursor.fetchall()
+    
+    embed = embeds.crear_embed_ranking(usuarios)
+    await ctx.send(embed=embed)
+
+@bot.command(name="historial")
+async def cmd_historial(ctx):
+    """Ver tu historial completo de compras"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT b.numero, r.nombre as rifa_nombre, b.fecha_compra, b.precio_pagado
+            FROM boletos b
+            JOIN rifas r ON b.rifa_id = r.id
+            WHERE b.comprador_id = ?
+            ORDER BY b.fecha_compra DESC
+            LIMIT 20
+        ''', (str(ctx.author.id),))
+        boletos = await cursor.fetchall()
+    
+    if not boletos:
+        await ctx.send(embed=embeds.crear_embed_error("No tienes historial de compras"))
+        return
+    
+    embed = discord.Embed(title="📜 Tu historial de compras", color=config.COLORS['primary'])
+    for b in boletos[:10]:
+        embed.add_field(
+            name=f"{b['rifa_nombre']} - #{b['numero']}",
+            value=f"${b['precio_pagado']:,} - {b['fecha_compra'][:10]}",
+            inline=False
+        )
+    
+    if len(boletos) > 10:
+        embed.set_footer(text=f"Mostrando 10 de {len(boletos)} compras")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="balance")
+async def cmd_balance(ctx):
+    """Ver tu balance de VP$"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(ctx.author.id),))
+        result = await cursor.fetchone()
+    
+    balance = result[0] if result else 0
+    
+    embed = discord.Embed(
+        title="💰 Tu balance de VP$",
+        description=f"Tienes **{balance} VP$** disponibles",
+        color=config.COLORS['primary']
+    )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="topvp")
+async def cmd_top_vp(ctx):
+    """Ver ranking de VP$"""
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT nombre, balance FROM usuarios_balance 
+            WHERE balance > 0 
+            ORDER BY balance DESC 
+            LIMIT 10
+        ''')
+        usuarios = await cursor.fetchall()
+    
+    if not usuarios:
+        await ctx.send(embed=embeds.crear_embed_info("ℹ️ Información", "No hay usuarios con VP$ aún"))
+        return
+    
+    embed = discord.Embed(
+        title="🏆 TOP 10 - VP$",
+        color=config.COLORS['primary']
+    )
+    
+    for i, u in enumerate(usuarios, 1):
+        medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
+        embed.add_field(
+            name=f"{medalla} {u['nombre']}",
+            value=f"**{u['balance']} VP$**",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+# ===== COMANDOS DE VENDEDOR =====
+
+@bot.command(name="vender")
+async def cmd_vender(ctx, usuario: discord.Member, numero: int):
+    """Vender boleto a un usuario"""
+    if not await verificar_canal(ctx):
+        return
+    if not await check_vendedor(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    if numero not in disponibles:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ El número {numero} no está disponible."))
+        return
+    
+    exito, mensaje = await bot.db.comprar_boleto(
+        rifa_activa['id'],
+        numero,
+        str(usuario.id),
+        usuario.name,
+        str(ctx.author.id)
+    )
+    
+    if exito:
+        await ctx.send(embed=embeds.crear_embed_exito(f"✅ Boleto #{numero} vendido a {usuario.name}"))
+        await ctx.send(f"💰 **{ctx.author.name}** vendió el boleto **#{numero}** a **{usuario.name}**")
+        await enviar_log(ctx, "💰 VENTA", f"{ctx.author.name} vendió #{numero} a {usuario.name}")
+        
+        try:
+            await usuario.send(f"🎟️ **{ctx.author.name}** te vendió el boleto #{numero} en la rifa **{rifa_activa['nombre']}**")
+        except:
+            pass
+    else:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error: {mensaje}"))
+
+@bot.command(name="misventas")
+async def cmd_mis_ventas(ctx):
+    """Ver tus ventas"""
+    if not await verificar_canal(ctx):
+        return
+    if not await check_vendedor(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT b.numero, r.nombre as rifa_nombre, b.comprador_nick, b.precio_pagado, b.fecha_compra
+            FROM boletos b
+            JOIN rifas r ON b.rifa_id = r.id
+            WHERE b.vendedor_id = ?
+            ORDER BY b.fecha_compra DESC
+            LIMIT 20
+        ''', (str(ctx.author.id),))
+        ventas = await cursor.fetchall()
+        
+        cursor = await db.execute('''
+            SELECT comisiones_pendientes FROM vendedores WHERE discord_id = ?
+        ''', (str(ctx.author.id),))
+        vendedor = await cursor.fetchone()
+    
+    embed = discord.Embed(title="💰 Tus ventas", color=config.COLORS['primary'])
+    
+    if vendedor:
+        embed.add_field(name="Comisiones pendientes", value=f"${vendedor['comisiones_pendientes']:,}", inline=False)
+    
+    if ventas:
+        for v in ventas[:5]:
+            embed.add_field(
+                name=f"{v['rifa_nombre']} - #{v['numero']}",
+                value=f"Comprador: {v['comprador_nick']} - ${v['precio_pagado']:,} - {v['fecha_compra'][:10]}",
+                inline=False
+            )
+    else:
+        embed.description = "No tienes ventas registradas"
+    
+    embed.set_footer(text=f"Total ventas mostradas: {len(ventas)}")
+    await ctx.send(embed=embed)
+
+# ===== COMANDOS DE ADMIN =====
+
+@bot.command(name="crearifa")
+async def cmd_crear_rifa(ctx, nombre: str, premio: str, valor_premio: int, precio_boleto: int, total_boletos: int):
+    """Crear una nueva rifa"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    rifa_id = await bot.db.crear_rifa(nombre, premio, valor_premio, precio_boleto, total_boletos)
+    
+    embed = embeds.crear_embed_exito(f"✅ Rifa creada exitosamente!\nID: {rifa_id}\nNombre: {nombre}\nPremio: {premio}\nPrecio: ${precio_boleto:,}\nTotal boletos: {total_boletos}")
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "🎯 NUEVA RIFA", f"{nombre} - {premio} - ${precio_boleto} c/u - {total_boletos} boletos")
+
+@bot.command(name="aumentarnumeros")
+async def cmd_aumentar_numeros(ctx, cantidad_nuevos: int):
+    """[ADMIN] Aumenta la cantidad de boletos de la rifa activa"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso para usar este comando")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    if cantidad_nuevos <= 0:
+        await ctx.send(embed=embeds.crear_embed_error("La cantidad debe ser mayor a 0"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        # Obtener total actual
+        cursor = await db.execute('SELECT total_boletos FROM rifas WHERE id = ?', (rifa_activa['id'],))
+        total_actual = (await cursor.fetchone())[0]
+        
+        # Calcular nuevo total
+        nuevo_total = total_actual + cantidad_nuevos
+        
+        # Actualizar la rifa
+        await db.execute('''
+            UPDATE rifas SET total_boletos = ? WHERE id = ?
+        ''', (nuevo_total, rifa_activa['id']))
+        
+        await db.commit()
+    
+    # Obtener números disponibles actualizados
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
+    
+    embed = discord.Embed(
+        title="📈 RIFA AMPLIADA",
+        description=f"Se agregaron **{cantidad_nuevos}** boletos nuevos",
+        color=config.COLORS['success']
+    )
+    embed.add_field(name="🎟️ Total anterior", value=f"{total_actual} boletos", inline=True)
+    embed.add_field(name="🎟️ Nuevo total", value=f"{nuevo_total} boletos", inline=True)
+    embed.add_field(name="📊 Vendidos", value=f"{vendidos} boletos", inline=True)
+    embed.add_field(name="✅ Disponibles ahora", value=f"**{len(disponibles)}** números", inline=True)
+    embed.add_field(name="💰 Nuevos números", value=f"Del #{total_actual + 1} al #{nuevo_total}", inline=False)
+    
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "📈 AMPLIACIÓN DE RIFA", f"{ctx.author.name} agregó {cantidad_nuevos} boletos (total: {total_actual} → {nuevo_total})")
+
+@bot.command(name="cerrarifa")
+async def cmd_cerrar_rifa(ctx):
+    """Cerrar la rifa actual"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    await bot.db.cerrar_rifa(rifa_activa['id'])
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Rifa #{rifa_activa['id']} cerrada. Lista para sorteo."))
+    await enviar_log(ctx, "🔒 RIFA CERRADA", f"Rifa #{rifa_activa['id']} - {rifa_activa['nombre']} cerrada por {ctx.author.name}")
+
+@bot.command(name="sorteo")
+async def cmd_sorteo(ctx, numero_ganador: int):
+    """Realizar sorteo con número ganador"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    boleto = await bot.db.obtener_ganador(rifa_activa['id'], numero_ganador)
+    
+    if boleto:
+        embed = discord.Embed(
+            title="🎉 ¡TENEMOS GANADOR! 🎉",
+            description=f"**Número ganador: #{numero_ganador}**",
+            color=config.COLORS['success']
+        )
+        embed.add_field(name="👑 Ganador", value=f"<@{boleto['comprador_id']}>", inline=True)
+        embed.add_field(name="🎟️ Boleto", value=f"#{boleto['numero']}", inline=True)
+        embed.add_field(name="🏆 Premio", value=rifa_activa['premio'], inline=False)
+        
+        await ctx.send(embed=embed)
+        await enviar_log(ctx, "🎉 SORTEO", f"Ganador: {boleto['comprador_nick']} con #{numero_ganador} - Premio: {rifa_activa['premio']}")
+        
+        try:
+            usuario = await bot.fetch_user(int(boleto['comprador_id']))
+            await usuario.send(f"🎉 ¡Felicidades! Has ganado la rifa **{rifa_activa['nombre']}** con el boleto #{numero_ganador}. El premio: {rifa_activa['premio']}")
+        except:
+            pass
+    else:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ No hay ganador para el número {numero_ganador}"))
+
+@bot.command(name="vendedoradd")
+async def cmd_vendedor_add(ctx, usuario: discord.Member, comision: int = 15):
+    """Añadir vendedor"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        await db.execute('''
+            INSERT INTO vendedores (discord_id, nombre, comision)
+            VALUES (?, ?, ?)
+            ON CONFLICT(discord_id) DO UPDATE SET
+                comision = ?,
+                nombre = ?
+        ''', (str(usuario.id), usuario.name, comision, comision, usuario.name))
+        await db.commit()
+    
+    try:
+        rol_vendedor = ctx.guild.get_role(config.ROLES['RIFAS'])
+        if rol_vendedor and rol_vendedor not in usuario.roles:
+            await usuario.add_roles(rol_vendedor)
+    except:
+        pass
+    
+    embed = embeds.crear_embed_exito(f"✅ {usuario.name} ahora es vendedor con {comision}% de comisión")
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "👥 NUEVO VENDEDOR", f"{usuario.name} ahora es vendedor ({comision}%) - por {ctx.author.name}")
+
+@bot.command(name="pagarcomisiones")
+async def cmd_pagar_comisiones(ctx):
+    """Ver comisiones pendientes"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT discord_id, nombre, comisiones_pendientes 
+            FROM vendedores 
+            WHERE comisiones_pendientes > 0
+        ''')
+        vendedores = await cursor.fetchall()
+        
+        if not vendedores:
+            await ctx.send(embed=embeds.crear_embed_info("ℹ️ Información", "No hay comisiones pendientes"))
+            return
+        
+        total = sum(v['comisiones_pendientes'] for v in vendedores)
+        
+        embed = discord.Embed(title="💰 Comisiones pendientes", color=config.COLORS['primary'])
+        for v in vendedores:
+            embed.add_field(name=v['nombre'], value=f"${v['comisiones_pendientes']:,}", inline=True)
+        
+        embed.add_field(name="TOTAL", value=f"${total:,}", inline=False)
+        embed.set_footer(text="Usa !confirmarpago @usuario para pagar")
+        
+        await ctx.send(embed=embed)
+
+@bot.command(name="confirmarpago")
+async def cmd_confirmar_pago(ctx, vendedor: discord.Member):
+    """Confirmar pago de comisiones"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT comisiones_pendientes FROM vendedores WHERE discord_id = ?
+        ''', (str(vendedor.id),))
+        result = await cursor.fetchone()
+        
+        if not result or result[0] == 0:
+            await ctx.send(embed=embeds.crear_embed_error(f"{vendedor.name} no tiene comisiones pendientes"))
+            return
+        
+        monto = result[0]
+        
+        await db.execute('''
+            UPDATE vendedores SET 
+                comisiones_pendientes = 0,
+                comisiones_pagadas = comisiones_pagadas + ?
+            WHERE discord_id = ?
+        ''', (monto, str(vendedor.id)))
+        
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, destino_id, descripcion)
+            VALUES ('pago_comision', ?, ?, ?)
+        ''', (monto, str(vendedor.id), f"Pago comisiones a {vendedor.name}"))
+        
+        await db.commit()
+    
+    embed = embeds.crear_embed_exito(f"✅ Pagadas ${monto:,} en comisiones a {vendedor.name}")
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "💰 PAGO COMISIONES", f"{ctx.author.name} pagó ${monto:,} a {vendedor.name}")
+
+@bot.command(name="reporte")
+async def cmd_reporte(ctx):
+    """Ver reporte de la rifa actual"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        
+        vendidos = await bot.db.get_boletos_vendidos(rifa_activa['id'])
+        recaudado = vendidos * rifa_activa['precio_boleto']
+        meta = rifa_activa['total_boletos'] * rifa_activa['precio_boleto']
+        
+        cursor = await db.execute('''
+            SELECT v.nombre, COUNT(*) as ventas, SUM(b.precio_pagado) as total
+            FROM boletos b
+            JOIN vendedores v ON b.vendedor_id = v.discord_id
+            WHERE b.rifa_id = ? AND b.vendedor_id IS NOT NULL
+            GROUP BY v.discord_id
+            ORDER BY ventas DESC
+            LIMIT 5
+        ''', (rifa_activa['id'],))
+        top_vendedores = await cursor.fetchall()
+        
+        cursor = await db.execute('''
+            SELECT comprador_nick, COUNT(*) as compras, SUM(precio_pagado) as total
+            FROM boletos
+            WHERE rifa_id = ?
+            GROUP BY comprador_id
+            ORDER BY compras DESC
+            LIMIT 5
+        ''', (rifa_activa['id'],))
+        top_compradores = await cursor.fetchall()
+    
+    embed = discord.Embed(
+        title=f"📊 REPORTE - {rifa_activa['nombre']}",
+        color=config.COLORS['primary']
+    )
+    
+    embed.add_field(name="💰 Recaudado", value=f"${recaudado:,} / ${meta:,}", inline=True)
+    embed.add_field(name="🎟️ Boletos", value=f"{vendidos}/{rifa_activa['total_boletos']}", inline=True)
+    
+    if top_vendedores:
+        text = "\n".join([f"• {v['nombre']}: {v['ventas']} boletos (${v['total']:,})" for v in top_vendedores])
+        embed.add_field(name="🥇 Top Vendedores", value=text, inline=False)
+    
+    if top_compradores:
+        text = "\n".join([f"• {c['comprador_nick']}: {c['compras']} boletos (${c['total']:,})" for c in top_compradores])
+        embed.add_field(name="🏆 Top Compradores", value=text, inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="alertar")
+async def cmd_alertar(ctx, *, mensaje: str):
+    """Enviar mensaje a todos los miembros"""
+    if not await check_admin(ctx):
+        await ctx.send("❌ No tienes permiso")
+        return
+    
+    embed = discord.Embed(
+        title="📢 ALERTA DE RIFAS",
+        description=mensaje,
+        color=config.COLORS['primary']
+    )
+    embed.set_footer(text="VP Rifas • Responde en el canal de rifas")
+    
+    enviados = 0
+    for member in ctx.guild.members:
+        if not member.bot:
+            try:
+                await member.send(embed=embed)
+                enviados += 1
+                await asyncio.sleep(0.5)
+            except:
+                pass
+    
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Mensaje enviado a {enviados} miembros"))
+    await enviar_log(ctx, "📢 ALERTA", f"{ctx.author.name} envió alerta a {enviados} miembros: {mensaje[:50]}...")
+
+# ===== COMANDOS DE CEO =====
+
+@bot.command(name="acreditarvp")
+async def cmd_acreditarvp(ctx, usuario: discord.Member, cantidad: int):
+    """Acreditar VP$ a un usuario"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if cantidad <= 0:
+        await ctx.send(embed=embeds.crear_embed_error("❌ La cantidad debe ser mayor a 0"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(usuario.id),))
+        result = await cursor.fetchone()
+        
+        if result:
+            await db.execute('''
+                UPDATE usuarios_balance 
+                SET balance = balance + ?, 
+                    ultima_actualizacion = CURRENT_TIMESTAMP 
+                WHERE discord_id = ?
+            ''', (cantidad, str(usuario.id)))
+        else:
+            await db.execute('''
+                INSERT INTO usuarios_balance (discord_id, nombre, balance)
+                VALUES (?, ?, ?)
+            ''', (str(usuario.id), usuario.name, cantidad))
+        
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, destino_id, descripcion)
+            VALUES ('acreditar_vp', ?, ?, ?)
+        ''', (cantidad, str(usuario.id), f"Acreditación de VP$ por {ctx.author.name}"))
+        
+        await db.commit()
+        
+        cursor = await db.execute('SELECT balance FROM usuarios_balance WHERE discord_id = ?', (str(usuario.id),))
+        nuevo_balance = (await cursor.fetchone())[0]
+    
+    embed = discord.Embed(
+        title="💰 ACREDITACIÓN DE VP$",
+        description=f"Se acreditaron **{cantidad} VP$** a {usuario.mention}",
+        color=config.COLORS['success']
+    )
+    embed.add_field(name="💵 Nuevo balance", value=f"**{nuevo_balance} VP$**", inline=True)
+    embed.add_field(name="👤 Usuario", value=usuario.name, inline=True)
+    embed.set_footer(text=f"Acción realizada por {ctx.author.name}")
+    
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "💰 ACREDITAR VP$", f"{ctx.author.name} acreditó {cantidad} VP$ a {usuario.name} (nuevo balance: {nuevo_balance})")
+    
+    try:
+        await usuario.send(f"💰 Has recibido **{cantidad} VP$** en VPComunidad. Tu nuevo balance es **{nuevo_balance} VP$**")
+    except:
+        pass
+
+@bot.command(name="retirarvp")
+async def cmd_retirarvp(ctx, usuario: discord.Member, cantidad: int):
+    """Retirar VP$ del balance de un usuario"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if cantidad <= 0:
+        await ctx.send(embed=embeds.crear_embed_error("❌ La cantidad debe ser mayor a 0"))
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(usuario.id),))
+        result = await cursor.fetchone()
+        
+        if not result:
+            await ctx.send(embed=embeds.crear_embed_error(f"❌ {usuario.name} no tiene balance de VP$"))
+            return
+        
+        balance_actual = result[0]
+        
+        if balance_actual < cantidad:
+            await ctx.send(embed=embeds.crear_embed_error(f"❌ {usuario.name} solo tiene {balance_actual} VP$. No puede retirar {cantidad} VP$"))
+            return
+        
+        nuevo_balance = balance_actual - cantidad
+        await db.execute('''
+            UPDATE usuarios_balance 
+            SET balance = ?, ultima_actualizacion = CURRENT_TIMESTAMP 
+            WHERE discord_id = ?
+        ''', (nuevo_balance, str(usuario.id)))
+        
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, origen_id, descripcion)
+            VALUES ('retirar_vp', ?, ?, ?)
+        ''', (cantidad, str(usuario.id), f"Retiro de VP$ por {ctx.author.name}"))
+        
+        await db.commit()
+    
+    embed = discord.Embed(
+        title="💰 RETIRO DE VP$",
+        description=f"Se retiraron **{cantidad} VP$** de {usuario.mention}",
+        color=config.COLORS['primary']
+    )
+    embed.add_field(name="💵 Balance anterior", value=f"**{balance_actual} VP$**", inline=True)
+    embed.add_field(name="💵 Nuevo balance", value=f"**{nuevo_balance} VP$**", inline=True)
+    embed.set_footer(text=f"Acción realizada por {ctx.author.name}")
+    
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "💰 RETIRAR VP$", f"{ctx.author.name} retiró {cantidad} VP$ de {usuario.name} (balance anterior: {balance_actual}, nuevo: {nuevo_balance})")
+    
+    try:
+        await usuario.send(f"💰 Se han retirado **{cantidad} VP$** de tu balance en VPComunidad. Tu nuevo balance es **{nuevo_balance} VP$**")
+    except:
+        pass
+
+# ===== COMANDOS DE REINICIO (SOLO CEO) =====
+
+@bot.command(name="resetallsistema")
+async def cmd_reset_all_sistema(ctx):
+    """[CEO] REINICIA TODO EL SISTEMA - Borra todas las rifas, boletos, balances y historial"""
+    global reset_pending
+    
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    # Mensaje de confirmación (requiere doble confirmación)
+    embed_confirm = discord.Embed(
+        title="⚠️ ¡ATENCIÓN! REINICIO TOTAL DEL SISTEMA",
+        description="Estás a punto de **BORRAR PERMANENTEMENTE** todo:\n\n"
+                    "• Todas las rifas\n"
+                    "• Todos los boletos\n"
+                    "• Todos los balances de VP$\n"
+                    "• Todo el historial de transacciones\n"
+                    "• Todos los clientes y vendedores\n\n"
+                    "**Esta acción NO SE PUEDE DESHACER.**",
+        color=config.COLORS['error']
+    )
+    embed_confirm.add_field(name="Para confirmar", value="Escribe `!confirmarreset` en los próximos 30 segundos", inline=False)
+    
+    await ctx.send(embed=embed_confirm)
+    
+    # Guardar el ID del usuario para la confirmación
+    reset_pending = {
+        'usuario_id': ctx.author.id,
+        'canal_id': ctx.channel.id,
+        'timestamp': datetime.now().timestamp()
+    }
+
+@bot.command(name="confirmarreset")
+async def cmd_confirmar_reset(ctx):
+    """Confirma el reinicio total del sistema"""
+    global reset_pending
+    
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if not reset_pending or reset_pending.get('usuario_id') != ctx.author.id:
+        await ctx.send(embed=embeds.crear_embed_error("❌ No hay ninguna solicitud de reinicio pendiente para ti"))
+        return
+    
+    # Verificar tiempo (30 segundos)
+    tiempo_actual = datetime.now().timestamp()
+    if tiempo_actual - reset_pending['timestamp'] > 30:
+        reset_pending = None
+        await ctx.send(embed=embeds.crear_embed_error("⏰ Tiempo de confirmación expirado (30 segundos). Ejecuta !resetallsistema nuevamente"))
+        return
+    
+    await ctx.send("🔄 **REINICIANDO TODO EL SISTEMA...**")
+    
+    try:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            # Borrar todas las tablas (en orden por las foreign keys)
+            await db.execute("DELETE FROM transacciones")
+            await db.execute("DELETE FROM apartados")
+            await db.execute("DELETE FROM boletos")
+            await db.execute("DELETE FROM vendedores")
+            await db.execute("DELETE FROM clientes")
+            await db.execute("DELETE FROM usuarios_balance")
+            await db.execute("DELETE FROM rifas")
+            await db.execute("DELETE FROM logs")
+            
+            # Resetear los autoincrement
+            await db.execute("DELETE FROM sqlite_sequence")
+            
+            await db.commit()
+        
+        reset_pending = None
+        
+        embed = discord.Embed(
+            title="✅ SISTEMA REINICIADO COMPLETAMENTE",
+            description="Todos los datos han sido eliminados:\n"
+                        "• ✅ Rifas eliminadas\n"
+                        "• ✅ Boletos eliminados\n"
+                        "• ✅ Balances VP$ eliminados\n"
+                        "• ✅ Historial eliminado\n"
+                        "• ✅ Clientes eliminados\n\n"
+                        "El sistema está como nuevo.",
+            color=config.COLORS['success']
+        )
+        await ctx.send(embed=embed)
+        
+        # Log de la acción
+        await enviar_log(ctx, "💣 REINICIO TOTAL", f"{ctx.author.name} reinició TODO el sistema")
+        
+    except Exception as e:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error durante el reinicio: {str(e)}"))
+
+@bot.command(name="resetboletosusuario")
+async def cmd_reset_boletos_usuario(ctx, usuario: discord.Member):
+    """[CEO] Reinicia todos los boletos de un usuario específico"""
+    global reset_user_pending
+    
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    # Verificar cuántos boletos tiene el usuario
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        cursor = await db.execute('''
+            SELECT COUNT(*) FROM boletos WHERE comprador_id = ?
+        ''', (str(usuario.id),))
+        total_boletos = (await cursor.fetchone())[0]
+        
+        cursor = await db.execute('''
+            SELECT SUM(precio_pagado) FROM boletos WHERE comprador_id = ?
+        ''', (str(usuario.id),))
+        total_gastado = (await cursor.fetchone())[0] or 0
+        
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(usuario.id),))
+        balance_result = await cursor.fetchone()
+        balance_actual = balance_result[0] if balance_result else 0
+    
+    if total_boletos == 0:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ {usuario.name} no tiene boletos en el sistema"))
+        return
+    
+    # Mensaje de confirmación
+    embed_confirm = discord.Embed(
+        title="⚠️ CONFIRMAR REINICIO DE BOLETOS",
+        description=f"Usuario: {usuario.mention}\n"
+                    f"Boletos a eliminar: **{total_boletos}**\n"
+                    f"Total gastado: **${total_gastado:,}**\n"
+                    f"Balance actual VP$: **{balance_actual}**\n\n"
+                    f"**¿Qué pasará?**\n"
+                    f"• Todos sus boletos serán ELIMINADOS\n"
+                    f"• Su balance VP$ será RESETEADO a 0\n"
+                    f"• Su historial de compras será BORRADO\n\n"
+                    f"Escribe `!confirmarresetuser {usuario.id}` para confirmar",
+        color=config.COLORS['error']
+    )
+    
+    await ctx.send(embed=embed_confirm)
+    
+    # Guardar datos para confirmación
+    reset_user_pending = {
+        'usuario_id': ctx.author.id,
+        'target_id': usuario.id,
+        'target_name': usuario.name,
+        'canal_id': ctx.channel.id,
+        'timestamp': datetime.now().timestamp()
+    }
+
+@bot.command(name="confirmarresetuser")
+async def cmd_confirmar_reset_user(ctx, usuario_id: str):
+    """Confirma el reinicio de boletos de un usuario"""
+    global reset_user_pending
+    
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    if not reset_user_pending or reset_user_pending.get('usuario_id') != ctx.author.id:
+        await ctx.send(embed=embeds.crear_embed_error("❌ No hay ninguna solicitud de reinicio pendiente para ti"))
+        return
+    
+    if str(reset_user_pending.get('target_id')) != usuario_id:
+        await ctx.send(embed=embeds.crear_embed_error("❌ El ID de usuario no coincide con la solicitud pendiente"))
+        return
+    
+    # Verificar tiempo (30 segundos)
+    tiempo_actual = datetime.now().timestamp()
+    if tiempo_actual - reset_user_pending['timestamp'] > 30:
+        reset_user_pending = None
+        await ctx.send(embed=embeds.crear_embed_error("⏰ Tiempo de confirmación expirado (30 segundos). Ejecuta !resetboletosusuario nuevamente"))
+        return
+    
+    await ctx.send(f"🔄 **REINICIANDO BOLETOS DE {reset_user_pending['target_name']}...**")
+    
+    try:
+        async with aiosqlite.connect(bot.db.db_path) as db:
+            # Eliminar boletos del usuario
+            await db.execute('''
+                DELETE FROM boletos WHERE comprador_id = ?
+            ''', (usuario_id,))
+            
+            # Resetear balance a 0
+            await db.execute('''
+                UPDATE usuarios_balance SET balance = 0 WHERE discord_id = ?
+            ''', (usuario_id,))
+            
+            await db.commit()
+        
+        reset_user_pending = None
+        
+        embed = discord.Embed(
+            title="✅ BOLETOS REINICIADOS",
+            description=f"Se han eliminado todos los boletos de <@{usuario_id}> y su balance VP$ se ha reseteado a 0.",
+            color=config.COLORS['success']
+        )
+        await ctx.send(embed=embed)
+        
+        # Log de la acción
+        await enviar_log(ctx, "🔄 REINICIO DE USUARIO", f"{ctx.author.name} reinició los boletos de <@{usuario_id}>")
+        
+    except Exception as e:
+        await ctx.send(embed=embeds.crear_embed_error(f"❌ Error durante el reinicio: {str(e)}"))
+
+@bot.command(name="auditoria")
+async def cmd_auditoria(ctx):
+    """Ver todas las transacciones"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT t.tipo, t.monto, t.descripcion, t.fecha,
+                   u1.nombre as origen_nombre,
+                   u2.nombre as destino_nombre
+            FROM transacciones t
+            LEFT JOIN clientes u1 ON t.origen_id = u1.discord_id
+            LEFT JOIN clientes u2 ON t.destino_id = u2.discord_id
+            ORDER BY t.fecha DESC
+            LIMIT 20
+        ''')
+        transacciones = await cursor.fetchall()
+        
+        cursor = await db.execute('SELECT SUM(monto) FROM transacciones WHERE tipo = "compra"')
+        total = (await cursor.fetchone())[0] or 0
+    
+    embed = discord.Embed(
+        title="📋 AUDITORÍA GENERAL",
+        description=f"💰 Total recaudado: ${total:,}",
+        color=config.COLORS['primary']
+    )
+    
+    for t in transacciones[:10]:
+        embed.add_field(
+            name=f"{t['fecha'][:10]} - {t['tipo']}",
+            value=f"${t['monto']:,} - {t['descripcion'] or 'Sin descripción'}",
+            inline=False
+        )
+    
+    embed.set_footer(text=f"Mostrando 10 de {len(transacciones)} transacciones")
+    await ctx.send(embed=embed)
+
+@bot.command(name="exportar")
+async def cmd_exportar(ctx):
+    """Exportar datos a CSV"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archivo = f"/sdcard/Download/vp_rifas_export_{fecha}.csv"
+    
+    async with aiosqlite.connect(bot.db.db_path) as db:
+        db.row_factory = aiosqlite.Row
+        
+        cursor = await db.execute('''
+            SELECT b.numero, r.nombre as rifa, b.comprador_nick, 
+                   b.vendedor_id, b.precio_pagado, b.fecha_compra
+            FROM boletos b
+            JOIN rifas r ON b.rifa_id = r.id
+            ORDER BY b.fecha_compra DESC
+        ''')
+        boletos = await cursor.fetchall()
+    
+    with open(archivo, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Número', 'Rifa', 'Comprador', 'Vendedor ID', 'Precio', 'Fecha'])
+        for b in boletos:
+            writer.writerow([b['numero'], b['rifa'], b['comprador_nick'], 
+                           b['vendedor_id'], b['precio_pagado'], b['fecha_compra']])
+    
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Datos exportados a:\n{archivo}"))
+    await enviar_log(ctx, "📊 EXPORTAR", f"{ctx.author.name} exportó datos a CSV")
+
+@bot.command(name="backup")
+async def cmd_backup(ctx):
+    """Crear backup de la base de datos"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = f"backups/rifas_backup_{fecha}.db"
+    
+    shutil.copy2(bot.db.db_path, backup_path)
+    
+    embed = embeds.crear_embed_exito(f"✅ Backup creado: {backup_path}")
+    await ctx.send(embed=embed)
+    await enviar_log(ctx, "💾 BACKUP", f"{ctx.author.name} creó backup: {backup_path}")
+
+@bot.command(name="estadisticas")
+async def cmd_estadisticas(ctx):
+    """Ver estadísticas globales"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    stats = await bot.db.get_estadisticas()
+    
+    embed = discord.Embed(
+        title="📊 ESTADÍSTICAS GLOBALES",
+        color=config.COLORS['primary']
+    )
+    
+    embed.add_field(name="🎟️ Total rifas", value=stats['total_rifas'], inline=True)
+    embed.add_field(name="💰 Total recaudado", value=f"${stats['total_recaudado']:,}", inline=True)
+    embed.add_field(name="👥 Total clientes", value=stats['total_clientes'], inline=True)
+    embed.add_field(name="🎲 Total boletos", value=stats['total_boletos'], inline=True)
+    
+    await ctx.send(embed=embed)
+
+# ===== COMANDO DE AYUDA =====
+
+@bot.command(name="ayuda")
+async def cmd_ayuda(ctx):
+    """Ver todos los comandos disponibles"""
+    if not await verificar_canal(ctx):
+        return
+    
+    member = ctx.guild.get_member(ctx.author.id)
+    
+    es_ceo = tiene_rol(member, config.ROLES['CEO'])
+    es_director = tiene_rol(member, config.ROLES['DIRECTOR'])
+    es_vendedor = tiene_rol(member, config.ROLES['RIFAS'])
+    
+    embed = discord.Embed(
+        title="🎟️ SISTEMA DE RIFAS VP - AYUDA",
+        description=f"Comandos disponibles según tu rol (prefijo: `{PREFIX}`)",
+        color=config.COLORS['primary']
+    )
+    
+    comandos_base = """
+    `!rifa` - Ver rifa activa
+    `!comprar [número]` - Comprar boleto específico
+    `!comprarrandom [cantidad]` - Comprar boletos aleatorios
+    `!misboletos` - Ver tus boletos
+    `!disponibles` - Ver números libres
+    `!ranking` - Top compradores
+    `!historial` - Tu historial de compras
+    `!balance` - Ver tu balance de VP$
+    `!topvp` - Ranking de VP$
+    `!ayuda` - Mostrar esta ayuda
+    """
+    embed.add_field(name="👤 TODOS LOS USUARIOS", value=comandos_base, inline=False)
+    
+    if es_vendedor or es_director or es_ceo:
+        comandos_vendedor = """
+        `!vender [@usuario] [número]` - Vender boleto
+        `!misventas` - Ver tus ventas
+        """
+        embed.add_field(name="💰 VENDEDORES", value=comandos_vendedor, inline=False)
+    
+    if es_director or es_ceo:
+        comandos_director = """
+        `!crearifa [nombre] [premio] [valor] [precio] [total]` - Crear rifa
+        `!aumentarnumeros [cantidad]` - Agregar más boletos a la rifa activa
+        `!cerrarifa` - Cerrar rifa actual
+        `!sorteo [número]` - Realizar sorteo
+        `!vendedoradd [@usuario] [comision]` - Añadir vendedor
+        `!pagarcomisiones` - Ver comisiones pendientes
+        `!confirmarpago [@usuario]` - Pagar comisiones
+        `!reporte` - Ver reporte de rifa
+        `!alertar [mensaje]` - Enviar alerta a todos
+        """
+        embed.add_field(name="🎯 DIRECTORES", value=comandos_director, inline=False)
+    
+    if es_ceo:
+        comandos_ceo = """
+        `!acreditarvp [@usuario] [cantidad]` - Acreditar VP$
+        `!retirarvp [@usuario] [cantidad]` - Retirar VP$
+        `!resetallsistema` - REINICIAR TODO EL SISTEMA
+        `!resetboletosusuario [@usuario]` - Reiniciar boletos de un usuario
+        `!auditoria` - Ver todas las transacciones
+        `!exportar` - Exportar datos a CSV
+        `!backup` - Crear backup de BD
+        `!estadisticas` - Estadísticas globales
+        """
+        embed.add_field(name="👑 CEO", value=comandos_ceo, inline=False)
+    
+    embed.set_footer(text="Ejemplo: !comprar 25")
+    await ctx.send(embed=embed)
+
+# ===== EJECUTAR BOT =====
+
+if __name__ == "__main__":
+    try:
+        bot.run(config.BOT_TOKEN)
+    except Exception as e:
+        logger.error(f"Error al iniciar el bot: {e}")
