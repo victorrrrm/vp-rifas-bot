@@ -25,7 +25,7 @@ os.makedirs('backups', exist_ok=True)
 # CONFIGURACIÓN GLOBAL
 # ============================================
 
-VERSION = "3.2.0"
+VERSION = "3.3.0"
 PREFIX = "!"
 start_time = datetime.now()
 reconnect_attempts = 0
@@ -542,11 +542,13 @@ async def cmd_ayuda(ctx):
     `!topgastadores` - Ranking de gasto
     `!cashback` - Tu cashback acumulado
     `!topcashback` - Ranking cashback
+    `!verniveles` - Ver configuración de niveles
     """
     embed.add_field(name="🏆 **FIDELIZACIÓN**", value=fidelizacion, inline=False)
     
     if es_vendedor or es_director or es_ceo:
         vendedor = """
+        `!vender [@usuario] [número]` - Vender número específico
         `!venderrandom [@usuario] [cantidad]` - Vender aleatorios
         `!misventas` - Ver tus ventas
         `!listaboletos` - Lista de boletos
@@ -565,6 +567,8 @@ async def cmd_ayuda(ctx):
         `!pagarcomisiones` - Ver comisiones
         `!confirmarpago [@usuario]` - Pagar comisiones
         `!reporte` - Reporte de rifa
+        `!setnivel` - Configurar nivel (CEO)
+        `!verniveles` - Ver niveles
         """
         embed.add_field(name="🎯 **DIRECTORES**", value=director, inline=False)
     
@@ -996,8 +1000,21 @@ async def cmd_nivel(ctx):
         color=config.COLORS['primary']
     )
     
-    if beneficios and beneficios['descuento'] > 0:
-        embed.add_field(name="💰 Descuento", value=f"**{beneficios['descuento']}%**", inline=True)
+    if beneficios:
+        beneficio_texto = []
+        if beneficios['descuento'] > 0:
+            beneficio_texto.append(f"💰 {beneficios['descuento']}% descuento")
+        if beneficios['boletos_gratis_por_cada'] > 0:
+            beneficio_texto.append(f"🎟️ +{beneficios['cantidad_boletos_gratis']} c/{beneficios['boletos_gratis_por_cada']}")
+        if beneficios['acceso_anticipado_horas'] > 0:
+            beneficio_texto.append(f"⏰ {beneficios['acceso_anticipado_horas']}h anticipación")
+        if beneficios['canal_vip']:
+            beneficio_texto.append(f"👑 Canal VIP")
+        if beneficios['rifas_exclusivas']:
+            beneficio_texto.append(f"✨ Rifas exclusivas")
+        
+        if beneficio_texto:
+            embed.add_field(name="✅ Beneficios", value="\n".join(beneficio_texto), inline=False)
     
     await ctx.send(embed=embed)
 
@@ -1032,6 +1049,81 @@ async def cmd_top_gastadores(ctx):
         )
     
     await ctx.send(embed=embed)
+
+@bot.command(name="verniveles")
+async def cmd_ver_niveles(ctx):
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute('''
+            SELECT * FROM fidelizacion_config ORDER BY gasto_minimo ASC
+        ''')
+        niveles = await cursor.fetchall()
+    
+    embed = discord.Embed(
+        title="📊 **CONFIGURACIÓN DE NIVELES**",
+        color=config.COLORS['primary']
+    )
+    
+    for n in niveles:
+        beneficios = []
+        if n['descuento'] > 0:
+            beneficios.append(f"💰 {n['descuento']}% desc")
+        if n['boletos_gratis_por_cada'] > 0:
+            beneficios.append(f"🎟️ +{n['cantidad_boletos_gratis']} c/{n['boletos_gratis_por_cada']}")
+        if n['acceso_anticipado_horas'] > 0:
+            beneficios.append(f"⏰ {n['acceso_anticipado_horas']}h")
+        if n['canal_vip']:
+            beneficios.append(f"👑 VIP")
+        if n['rifas_exclusivas']:
+            beneficios.append(f"✨ Excl")
+        
+        rango = f"${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}"
+        texto = f"**Rango:** {rango}\n"
+        texto += f"**Beneficios:** {' | '.join(beneficios) if beneficios else 'Ninguno'}"
+        
+        embed.add_field(name=f"**{n['nivel']}**", value=texto, inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="setnivel")
+async def cmd_set_nivel(ctx, nivel: str, campo: str, valor: str):
+    """Configura los beneficios de un nivel"""
+    if not await check_ceo(ctx):
+        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    nivel = nivel.upper()
+    niveles_validos = ['BRONCE', 'PLATA', 'ORO', 'PLATINO', 'DIAMANTE', 'MASTER']
+    
+    if nivel not in niveles_validos:
+        await ctx.send(embed=embeds.crear_embed_error(f"Niveles: {', '.join(niveles_validos)}"))
+        return
+    
+    campos_validos = {
+        'descuento': 'descuento',
+        'gratis_cada': 'boletos_gratis_por_cada',
+        'gratis_cantidad': 'cantidad_boletos_gratis',
+        'anticipo_horas': 'acceso_anticipado_horas',
+        'canal_vip': 'canal_vip',
+        'rifas_exclusivas': 'rifas_exclusivas'
+    }
+    
+    if campo not in campos_validos:
+        await ctx.send(embed=embeds.crear_embed_error(f"Campos: {', '.join(campos_validos.keys())}"))
+        return
+    
+    columna = campos_validos[campo]
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute(f'''
+            UPDATE fidelizacion_config SET {columna} = ? WHERE nivel = ?
+        ''', (valor, nivel))
+        await db.commit()
+    
+    await ctx.send(embed=embeds.crear_embed_exito(f"Nivel {nivel}: {campo} = {valor}"))
 
 # ============================================
 # SISTEMA DE CASHBACK
@@ -1160,6 +1252,60 @@ async def cmd_reset_cashback(ctx):
 # COMANDOS DE VENDEDOR
 # ============================================
 
+@bot.command(name="vender")
+async def cmd_vender(ctx, usuario: discord.Member, numero: int):
+    """Vende un número específico a un usuario"""
+    if not await verificar_canal(ctx):
+        return
+    if not await check_vendedor(ctx):
+        await ctx.send(embed=embeds.crear_embed_error("Sin permiso"))
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa"))
+        return
+    
+    if numero < 1 or numero > rifa_activa['total_boletos']:
+        await ctx.send(embed=embeds.crear_embed_error(f"Número entre 1-{rifa_activa['total_boletos']}"))
+        return
+    
+    disponibles = await bot.db.get_boletos_disponibles(rifa_activa['id'])
+    if numero not in disponibles:
+        await ctx.send(embed=embeds.crear_embed_error(f"Número {numero} no disponible"))
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(usuario.id),))
+        result = await cursor.fetchone()
+        balance = result[0] if result else 0
+    
+    precio_boleto = rifa_activa['precio_boleto']
+    descuento = await obtener_descuento_usuario(str(usuario.id))
+    precio_final = int(precio_boleto * (100 - descuento) / 100)
+    
+    if balance < precio_final:
+        await ctx.send(embed=embeds.crear_embed_error(f"Usuario necesita {precio_final} VP$"))
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+        ''', (balance - precio_final, str(usuario.id)))
+        
+        await db.execute('''
+            INSERT INTO boletos (rifa_id, numero, comprador_id, comprador_nick, vendedor_id, precio_pagado)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (rifa_activa['id'], numero, str(usuario.id), usuario.name, str(ctx.author.id), precio_boleto))
+        
+        await db.commit()
+    
+    await ctx.send(embed=embeds.crear_embed_exito(
+        f"Venta a {usuario.name}\nNúmero: #{numero}\nTotal: ${precio_final}"
+    ))
+
 @bot.command(name="venderrandom")
 async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
     if not await verificar_canal(ctx):
@@ -1189,7 +1335,8 @@ async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
         result = await cursor.fetchone()
         balance = result[0] if result else 0
     
-    precio_total = rifa_activa['precio_boleto'] * cantidad
+    precio_boleto = rifa_activa['precio_boleto']
+    precio_total = precio_boleto * cantidad
     descuento = await obtener_descuento_usuario(str(usuario.id))
     precio_final = int(precio_total * (100 - descuento) / 100)
     
@@ -1209,7 +1356,7 @@ async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
             await db.execute('''
                 INSERT INTO boletos (rifa_id, numero, comprador_id, comprador_nick, vendedor_id, precio_pagado)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (rifa_activa['id'], num, str(usuario.id), usuario.name, str(ctx.author.id), rifa_activa['precio_boleto']))
+            ''', (rifa_activa['id'], num, str(usuario.id), usuario.name, str(ctx.author.id), precio_boleto))
             comprados.append(num)
         
         await db.commit()
