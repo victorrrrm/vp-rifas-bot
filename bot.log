@@ -1,0 +1,2126 @@
+2026-03-16 05:01:02,401 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 05:01:02,402 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 05:01:02,407 - discord.client - INFO - logging in using static token
+2026-03-16 05:01:02,983 - __main__ - INFO - Iniciando configuración...
+2026-03-16 05:01:03,055 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 05:01:03,365 - __main__ - INFO - ✅ Comandos sincronizados
+2026-03-16 05:01:03,856 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 9a80df209752aaa45026836bc2f74345).
+2026-03-16 05:01:05,889 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:01:05,889 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:02:30,459 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 9a80df209752aaa45026836bc2f74345.
+2026-03-16 05:04:19,134 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:04:19,452 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 9a80df209752aaa45026836bc2f74345.
+2026-03-16 05:10:17,863 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 05:10:17,863 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 05:10:17,868 - discord.client - INFO - logging in using static token
+2026-03-16 05:10:18,362 - __main__ - INFO - Iniciando configuración...
+2026-03-16 05:10:18,369 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 05:10:18,568 - __main__ - INFO - ✅ Comandos sincronizados
+2026-03-16 05:10:19,104 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 7803391908e41ca1ef978da502b8ecde).
+2026-03-16 05:10:21,133 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:10:21,134 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:11:45,932 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 7803391908e41ca1ef978da502b8ecde.
+2026-03-16 05:11:46,175 - discord.app_commands.tree - ERROR - Ignoring exception in command 'sorteo'
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/commands.py", line 859, in _do_call
+    return await self._callback(interaction, **params)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 322, in sorteo
+    await interaction.response.send_message(embed=embeds.crear_embed_error("No hay rifa activa"), ephemeral=True)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/interactions.py", line 1085, in send_message
+    data = await adapter.create_interaction_response(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/webhook/async_.py", line 224, in request
+    raise NotFound(response, data)
+discord.errors.NotFound: 404 Not Found (error code: 10062): Unknown interaction
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/tree.py", line 1302, in _call
+    await command._invoke_with_namespace(interaction, namespace)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/commands.py", line 884, in _invoke_with_namespace
+    return await self._do_call(interaction, transformed_values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/commands.py", line 877, in _do_call
+    raise CommandInvokeError(self, e) from e
+discord.app_commands.errors.CommandInvokeError: Command 'sorteo' raised an exception: NotFound: 404 Not Found (error code: 10062): Unknown interaction
+2026-03-16 05:12:56,528 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 7803391908e41ca1ef978da502b8ecde.
+2026-03-16 05:16:38,028 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:16:38,374 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 05:16:44,071 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 1cdeaac959c1369582c3e47151f1e86d).
+2026-03-16 05:16:46,099 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:16:46,099 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:17:32,240 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "ayuda" is not found
+2026-03-16 05:18:03,779 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "ayuda" is not found
+2026-03-16 05:19:25,829 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 1cdeaac959c1369582c3e47151f1e86d.
+2026-03-16 05:27:22,186 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 05:27:22,187 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 05:27:22,195 - discord.client - INFO - logging in using static token
+2026-03-16 05:27:23,592 - __main__ - INFO - Iniciando configuración...
+2026-03-16 05:27:23,663 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 05:27:24,179 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 00301e3be2f1a0ecb229e46c9024b2e7).
+2026-03-16 05:27:26,309 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:27:26,309 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:28:36,359 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:28:36,713 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 00301e3be2f1a0ecb229e46c9024b2e7.
+2026-03-16 05:28:36,725 - discord.app_commands.tree - ERROR - Ignoring exception in command tree
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/tree.py", line 1138, in wrapper
+    await self._call(interaction)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/tree.py", line 1270, in _call
+    command, options = self._get_app_command_options(data)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/app_commands/tree.py", line 1174, in _get_app_command_options
+    raise CommandNotFound(name, parents)
+discord.app_commands.errors.CommandNotFound: Application command 'rifa' not found
+2026-03-16 05:29:38,977 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:29:39,284 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 00301e3be2f1a0ecb229e46c9024b2e7.
+2026-03-16 05:33:55,836 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 05:33:55,836 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 05:33:55,845 - discord.client - INFO - logging in using static token
+2026-03-16 05:33:56,367 - __main__ - INFO - Iniciando configuración...
+2026-03-16 05:33:56,375 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 05:33:57,001 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c067badf70253716a58437bcb6dde328).
+2026-03-16 05:33:59,033 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:33:59,033 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:35:15,710 - discord.gateway - INFO - Shard ID None has successfully RESUMED session c067badf70253716a58437bcb6dde328.
+2026-03-16 05:36:06,389 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 05:36:06,390 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 05:36:06,399 - discord.client - INFO - logging in using static token
+2026-03-16 05:36:06,984 - __main__ - INFO - Iniciando configuración...
+2026-03-16 05:36:06,990 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 05:36:12,445 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 64fd377148cb9c4c178e04b3cdda66f3).
+2026-03-16 05:36:14,490 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:36:14,490 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:37:04,208 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:37:24,471 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "acreditar" is not found
+2026-03-16 05:38:06,010 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:38:06,095 - discord.ext.commands.bot - ERROR - Ignoring exception in command acreditarvp
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 750, in transform
+    return await run_converters(ctx, converter, argument, param)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1466, in run_converters
+    return await _actual_conversion(ctx, converter, argument, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1350, in _actual_conversion
+    return await converter().convert(ctx, argument)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 283, in convert
+    raise MemberNotFound(argument)
+discord.ext.commands.errors.MemberNotFound: Member "@victor<@942908758982553620>" not found.
+2026-03-16 05:39:40,201 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:40:48,030 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:40:48,032 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1359, in _actual_conversion
+    return converter(argument)
+ValueError: invalid literal for int() with base 10: '25Coins'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 750, in transform
+    return await run_converters(ctx, converter, argument, param)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1466, in run_converters
+    return await _actual_conversion(ctx, converter, argument, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1368, in _actual_conversion
+    raise BadArgument(f'Converting to "{name}" failed for parameter "{param.name}".') from exc
+discord.ext.commands.errors.BadArgument: Converting to "int" failed for parameter "valor_premio".
+2026-03-16 05:40:55,819 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 732, in transform
+    raise MissingRequiredArgument(param)
+discord.ext.commands.errors.MissingRequiredArgument: nombre is a required argument that is missing.
+2026-03-16 05:41:15,063 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 732, in transform
+    raise MissingRequiredArgument(param)
+discord.ext.commands.errors.MissingRequiredArgument: nombre is a required argument that is missing.
+2026-03-16 05:42:55,769 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:43:32,398 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:45:15,094 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:45:15,098 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "topvo" is not found
+2026-03-16 05:45:50,082 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64fd377148cb9c4c178e04b3cdda66f3.
+2026-03-16 05:51:58,061 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:51:58,423 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 05:52:03,932 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 64302cc0dacf4aee3ff487bdbd1fa2e2).
+2026-03-16 05:52:05,982 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:52:05,983 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 05:52:54,863 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 64302cc0dacf4aee3ff487bdbd1fa2e2.
+2026-03-16 05:56:54,747 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 05:56:55,092 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 05:57:00,655 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b1ed0474ce575cde71f7ca8fb5e4d457).
+2026-03-16 05:57:02,703 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 05:57:02,704 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 06:40:54,053 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 06:40:54,548 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 06:41:00,146 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: a89686be71640b0273c80f7a1b0710cb).
+2026-03-16 06:41:02,214 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 06:41:02,232 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 07:08:46,479 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 07:08:46,998 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 07:09:47,449 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 07:09:47,449 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 07:09:47,458 - discord.client - INFO - logging in using static token
+2026-03-16 07:09:48,077 - __main__ - INFO - Iniciando configuración...
+2026-03-16 07:09:48,111 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 07:09:48,635 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 81bf0e0e6659710a07f90d86816d5b34).
+2026-03-16 07:09:50,666 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 07:09:50,667 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 07:10:27,591 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 81bf0e0e6659710a07f90d86816d5b34.
+2026-03-16 07:32:35,752 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 07:32:36,511 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 07:35:45,200 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 07:35:45,200 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 07:35:45,211 - discord.client - INFO - logging in using static token
+2026-03-16 07:35:45,673 - __main__ - INFO - Iniciando configuración...
+2026-03-16 07:35:45,702 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 07:35:46,200 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 3de3a9375804beff9dea935a71d38882).
+2026-03-16 07:35:48,247 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 07:35:48,248 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 07:59:30,862 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 07:59:31,341 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 08:00:28,839 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 08:00:28,839 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 08:00:28,848 - discord.client - INFO - logging in using static token
+2026-03-16 08:00:29,401 - __main__ - INFO - Iniciando configuración...
+2026-03-16 08:00:29,429 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 08:00:29,998 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c8985374d76b58fcdda9155e51df1590).
+2026-03-16 08:00:32,030 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 08:00:32,030 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 11:10:50,090 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 11:10:51,183 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 11:10:56,863 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: f8f3740b2c29c24657a0caf76bb679a1).
+2026-03-16 11:10:59,069 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 11:10:59,073 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 11:11:13,997 - discord.client - ERROR - Attempting a reconnect in 0.61s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 11:11:14,912 - discord.client - ERROR - Attempting a reconnect in 3.71s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 11:11:18,659 - discord.client - ERROR - Attempting a reconnect in 2.28s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 11:11:20,974 - discord.client - ERROR - Attempting a reconnect in 1.37s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 11:11:22,408 - discord.client - ERROR - Attempting a reconnect in 15.90s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 11:19:49,901 - discord.client - ERROR - Attempting a reconnect in 35.74s
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1562, in _create_direct_connection
+    hosts = await self._resolve_host(host, port, traces=traces)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1178, in _resolve_host
+    return await asyncio.shield(resolved_host_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1209, in _resolve_host_with_throttle
+    addrs = await self._resolver.resolve(host, port, family=self._family)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/resolver.py", line 40, in resolve
+    infos = await self._loop.getaddrinfo(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/data/data/com.termux/files/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 7] No address associated with hostname
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 728, in connect
+    self.ws = await asyncio.wait_for(coro, timeout=60.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/gateway.py", line 392, in from_client
+    socket = await client.http.ws_connect(str(url))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/http.py", line 571, in ws_connect
+    return await self.__session.ws_connect(url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 1076, in _ws_connect
+    resp = await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 779, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/client.py", line 734, in _connect_and_send_request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        req, traces=traces, timeout=real_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 672, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1239, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/aiohttp/connector.py", line 1568, in _create_direct_connection
+    raise ClientConnectorDNSError(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorDNSError: Cannot connect to host gateway-us-east1-c.discord.gg:443 ssl:default [No address associated with hostname]
+2026-03-16 14:10:03,130 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 14:10:08,902 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: f8dec702b61bd6abec14d36a89a30042).
+2026-03-16 14:10:11,006 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 14:10:11,008 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 14:26:32,836 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:26:33,167 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 14:26:38,706 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c0d6fb714ba3f450ff1f879241f44fed).
+2026-03-16 14:26:40,757 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 14:26:40,757 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 14:31:37,778 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:31:38,102 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 14:31:43,827 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b6adbfdd9b9ac1b8d9d5417ef1e90cb0).
+2026-03-16 14:31:45,855 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 14:31:45,856 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 14:31:56,500 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1359, in _actual_conversion
+    return converter(argument)
+ValueError: invalid literal for int() with base 10: '5Coins'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 750, in transform
+    return await run_converters(ctx, converter, argument, param)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1466, in run_converters
+    return await _actual_conversion(ctx, converter, argument, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1368, in _actual_conversion
+    raise BadArgument(f'Converting to "{name}" failed for parameter "{param.name}".') from exc
+discord.ext.commands.errors.BadArgument: Converting to "int" failed for parameter "valor_premio".
+2026-03-16 14:32:08,858 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1359, in _actual_conversion
+    return converter(argument)
+ValueError: invalid literal for int() with base 10: '5Coins'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 750, in transform
+    return await run_converters(ctx, converter, argument, param)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1466, in run_converters
+    return await _actual_conversion(ctx, converter, argument, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1368, in _actual_conversion
+    raise BadArgument(f'Converting to "{name}" failed for parameter "{param.name}".') from exc
+discord.ext.commands.errors.BadArgument: Converting to "int" failed for parameter "valor_premio".
+2026-03-16 14:33:05,942 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:33:05,944 - discord.ext.commands.bot - ERROR - Ignoring exception in command crearifa
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1359, in _actual_conversion
+    return converter(argument)
+ValueError: invalid literal for int() with base 10: '5C'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 750, in transform
+    return await run_converters(ctx, converter, argument, param)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1466, in run_converters
+    return await _actual_conversion(ctx, converter, argument, param)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/converter.py", line 1368, in _actual_conversion
+    raise BadArgument(f'Converting to "{name}" failed for parameter "{param.name}".') from exc
+discord.ext.commands.errors.BadArgument: Converting to "int" failed for parameter "valor_premio".
+2026-03-16 14:33:41,239 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:34:29,138 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:35:57,930 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:35:58,271 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:37:33,708 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:37:34,055 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:38:06,735 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:39:59,598 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:39:59,947 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:42:05,287 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:42:39,246 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:43:23,497 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:44:49,994 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b6adbfdd9b9ac1b8d9d5417ef1e90cb0.
+2026-03-16 14:47:55,236 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-16 14:47:55,237 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-16 14:47:55,249 - discord.client - INFO - logging in using static token
+2026-03-16 14:47:55,747 - __main__ - INFO - Iniciando configuración...
+2026-03-16 14:47:55,763 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-16 14:47:56,299 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 66b9713e2db62a1ff9c1a36785e5ce88).
+2026-03-16 14:47:58,387 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 14:47:58,388 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 14:49:34,632 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 14:49:35,065 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 66b9713e2db62a1ff9c1a36785e5ce88.
+2026-03-16 14:50:26,203 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 66b9713e2db62a1ff9c1a36785e5ce88.
+2026-03-16 14:56:37,427 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 14:56:42,985 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: bd28d6090fda0d80c10ef25762ea2bff).
+2026-03-16 14:56:45,027 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 14:56:45,028 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 15:15:24,793 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 15:15:25,324 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 15:15:30,931 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 09d85d603b899751552d4dd3fd4b137e).
+2026-03-16 15:15:32,974 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 15:15:32,975 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 15:33:22,210 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 15:33:22,565 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 15:33:28,175 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: d72d9736289d5a5998c2b111924538df).
+2026-03-16 15:33:30,218 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 15:33:30,219 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 15:37:15,392 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 15:37:15,747 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 15:37:21,638 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: aecb4bf435efde0867a637dace41c7ce).
+2026-03-16 15:37:23,721 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 15:37:23,722 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 15:38:17,524 - discord.gateway - INFO - Shard ID None has successfully RESUMED session aecb4bf435efde0867a637dace41c7ce.
+2026-03-16 16:24:41,777 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 16:24:42,277 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 16:24:47,990 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 631d9bb397ecf31d9abaca338b610080).
+2026-03-16 16:28:50,087 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 16:28:50,088 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 16:28:50,457 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 16:28:56,154 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2d1680a739ba45c2a1ae0e87e3efecbf).
+2026-03-16 16:28:58,209 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 16:28:58,210 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 16:47:47,450 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 16:47:48,045 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 16:47:53,589 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 543408dc7e7148b5d86b17455281e1a4).
+2026-03-16 16:47:55,649 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 16:47:55,650 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 17:05:06,467 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 17:05:07,156 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 17:05:12,930 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: e381547b196fb3432c8576c21527150d).
+2026-03-16 17:05:15,017 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 17:05:15,019 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 18:03:25,844 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 18:03:26,318 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 18:03:31,866 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 9933e30e3e106ebe0e277bb9888cffe5).
+2026-03-16 18:03:33,938 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 18:03:33,939 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 18:12:06,190 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 18:12:06,524 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 18:12:12,092 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 4db67dff4f59005e9f186bfdf6a745d0).
+2026-03-16 18:12:14,158 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 18:12:14,159 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 18:26:07,924 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 18:26:08,422 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 18:26:14,199 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 4575d271f160c01114c7918da48b4a7c).
+2026-03-16 18:26:16,245 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 18:26:16,246 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 18:40:04,590 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 18:40:05,113 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 18:40:10,619 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 80afb525f1204d0d217926203e35994d).
+2026-03-16 18:40:12,668 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 18:40:12,669 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 19:06:07,603 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 19:06:08,395 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 19:06:14,168 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 744272c5038a09446a0ce238a0d84ddf).
+2026-03-16 19:06:16,226 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 19:06:16,227 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 19:21:10,976 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 19:21:11,429 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 19:21:17,070 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 99635634822ac38168286628cf272124).
+2026-03-16 19:21:19,124 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 19:21:19,124 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 19:39:31,778 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 19:39:32,198 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 19:39:37,823 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: cb8252d9c0cb4ee09986ef41776420c2).
+2026-03-16 19:39:39,893 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 19:39:39,894 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 19:54:12,562 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 19:54:13,158 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 19:54:18,710 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: fdcca205a3960542664fd5fa587271ab).
+2026-03-16 19:54:20,799 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 19:54:20,800 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 20:23:32,621 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 20:23:33,425 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 20:23:39,000 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2c049d14e54cef24883049199f6c79cc).
+2026-03-16 20:23:41,111 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 20:23:41,112 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 21:02:39,725 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 21:02:40,514 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 21:02:46,193 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 9fba0fd15e323a3e321f766859459b23).
+2026-03-16 21:02:48,395 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 21:02:48,396 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 21:31:53,640 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 21:31:54,216 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 21:32:00,213 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 0060d233ff09451fec34bc4983668a4d).
+2026-03-16 21:32:02,309 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 21:32:02,309 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 22:05:32,572 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 22:05:33,647 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 22:05:39,371 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 7c097114f28670fa4a4da216d1a30e7b).
+2026-03-16 22:05:41,435 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 22:05:41,453 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 22:32:15,933 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 22:32:16,847 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 22:32:22,582 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: e72278229867b67c7a40f1ac209d9210).
+2026-03-16 22:32:24,827 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 22:32:24,829 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 23:43:54,093 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 23:43:54,547 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 23:44:00,539 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b4c7aacec5723714463c34f66ad50be1).
+2026-03-16 23:44:02,612 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 23:44:02,614 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-16 23:58:31,551 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-16 23:58:31,984 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-16 23:58:37,634 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 43ff47df76983cd9e0f3d1cc8d9ddcd2).
+2026-03-16 23:58:39,685 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-16 23:58:39,685 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 00:10:49,074 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 00:10:49,527 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 00:10:55,015 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b07a2840443936cf8b1f9fa7fcf5a4d5).
+2026-03-17 00:10:57,085 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 00:10:57,085 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 00:20:23,539 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 00:20:23,875 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 00:20:29,395 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 98af6cbe5f451df651b45c1d52a858ce).
+2026-03-17 00:20:31,450 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 00:20:31,451 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 00:29:15,954 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 00:29:21,806 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 4cbf1e784dd1d22f590f545bc414d532).
+2026-03-17 00:29:23,882 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 00:29:23,882 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 00:36:57,337 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 00:37:02,939 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 271bf537bdd1c525b5191bac5f297541).
+2026-03-17 00:37:04,986 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 00:37:04,987 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 00:53:29,038 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 00:53:29,435 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 00:53:35,018 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: a44e7685268420b8cef22eb34e8e6ce9).
+2026-03-17 00:53:37,078 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 00:53:37,078 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 01:08:11,161 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 01:08:11,516 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 01:08:17,026 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: eef0a7447c0b77584bd1539f8970c0b8).
+2026-03-17 01:08:19,187 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 01:08:19,188 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 01:41:02,064 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 01:41:02,388 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 01:41:07,916 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 78006e4f14b7a047a55af944bc3a1bad).
+2026-03-17 01:41:09,951 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 01:41:09,951 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 01:54:52,894 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 01:54:53,266 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 01:54:58,834 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b119df851bb390a40c2a084400a4d5c2).
+2026-03-17 01:55:00,877 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 01:55:00,877 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 01:56:43,303 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 01:56:43,677 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b119df851bb390a40c2a084400a4d5c2.
+2026-03-17 01:56:43,682 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "acreditar" is not found
+2026-03-17 01:56:56,645 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "acreditar" is not found
+2026-03-17 02:00:44,485 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 02:00:50,220 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2c77d547de5b32d60ca990137defcebc).
+2026-03-17 02:00:52,284 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 02:00:52,285 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 02:01:04,552 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "comprarramdom" is not found
+2026-03-17 02:01:15,098 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "comprarramdom" is not found
+2026-03-17 02:01:36,272 - discord.ext.commands.bot - ERROR - Ignoring exception in command comprarrandom
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 732, in transform
+    raise MissingRequiredArgument(param)
+discord.ext.commands.errors.MissingRequiredArgument: cantidad is a required argument that is missing.
+2026-03-17 02:01:36,698 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:04:14,265 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 02:04:14,636 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:06:11,226 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 02:06:11,547 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:07:34,554 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:08:58,151 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:09:33,850 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 02:10:48,878 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2c77d547de5b32d60ca990137defcebc.
+2026-03-17 03:22:45,628 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 03:22:46,183 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 03:22:51,707 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 993b394565662fa92cf8be2ebbe0b6cd).
+2026-03-17 03:22:53,782 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 03:22:53,782 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 03:55:57,405 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 03:55:57,804 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 03:56:03,347 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 8347a1d92f82ea168b1dfe0114b10e2e).
+2026-03-17 03:56:05,409 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 03:56:05,409 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 03:56:09,548 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "rifas" is not found
+2026-03-17 03:56:18,089 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "rifas" is not found
+2026-03-17 04:09:59,130 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 04:09:59,475 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 04:11:45,320 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-17 04:11:45,321 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-17 04:11:45,330 - discord.client - INFO - logging in using static token
+2026-03-17 04:11:45,835 - __main__ - INFO - Iniciando configuración...
+2026-03-17 04:11:45,846 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-17 04:11:45,848 - discord.ext.tasks - ERROR - Unhandled exception in internal background task 'status_task'.
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/tasks/__init__.py", line 247, in _loop
+    await self.coro(*args, **kwargs)
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 114, in status_task
+    await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/client.py", line 2156, in change_presence
+    await self.ws.change_presence(activity=activity, status=status_str)
+          ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'change_presence'
+2026-03-17 04:11:46,366 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 56d775bee13c0e75173f01913793f2ec).
+2026-03-17 04:11:48,386 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 04:11:48,386 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 04:12:55,334 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:12:55,673 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 56d775bee13c0e75173f01913793f2ec.
+2026-03-17 04:12:55,677 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:13:54,849 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:13:55,189 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 56d775bee13c0e75173f01913793f2ec.
+2026-03-17 04:13:55,192 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:16:41,563 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 04:16:41,568 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:16:41,872 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 04:16:41,941 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:16:47,384 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: fb6329519f504a58998a90c0776b3df3).
+2026-03-17 04:16:49,413 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 04:16:49,414 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 04:17:44,733 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:17:45,048 - discord.gateway - INFO - Shard ID None has successfully RESUMED session fb6329519f504a58998a90c0776b3df3.
+2026-03-17 04:17:45,048 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:19:19,320 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:19:19,656 - discord.gateway - INFO - Shard ID None has successfully RESUMED session fb6329519f504a58998a90c0776b3df3.
+2026-03-17 04:19:19,658 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:21:14,720 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:21:15,043 - discord.gateway - INFO - Shard ID None has successfully RESUMED session fb6329519f504a58998a90c0776b3df3.
+2026-03-17 04:21:15,045 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:22:04,156 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:22:04,478 - discord.gateway - INFO - Shard ID None has successfully RESUMED session fb6329519f504a58998a90c0776b3df3.
+2026-03-17 04:22:04,479 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:41:14,182 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 04:41:14,543 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:41:15,035 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 04:41:15,108 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:43:19,584 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-17 04:43:19,584 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-17 04:43:19,596 - discord.client - INFO - logging in using static token
+2026-03-17 04:43:20,060 - __main__ - INFO - Iniciando configuración...
+2026-03-17 04:43:20,086 - __main__ - INFO - ✅ Base de datos inicializada
+2026-03-17 04:43:20,089 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-17 04:43:20,090 - __main__ - ERROR - Error cambiando actividad: 'NoneType' object has no attribute 'change_presence'
+2026-03-17 04:43:21,202 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 1db6a61fef6ea17a0872482195f9a9ab).
+2026-03-17 04:43:23,226 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 04:43:23,226 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 04:44:09,537 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:44:09,860 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 1db6a61fef6ea17a0872482195f9a9ab.
+2026-03-17 04:44:09,860 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 04:46:36,274 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:46:36,598 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 04:46:36,667 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:46:42,153 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: d1764aefe37223693263953e18911b1c).
+2026-03-17 04:46:44,185 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 04:46:44,185 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 04:48:21,827 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 04:48:22,143 - discord.gateway - INFO - Shard ID None has successfully RESUMED session d1764aefe37223693263953e18911b1c.
+2026-03-17 04:48:22,147 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 11:35:58,637 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 11:35:58,737 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,742 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 11:35:58,750 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,752 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,754 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,756 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,758 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,759 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,761 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,763 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,766 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,766 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,769 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,770 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,770 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,771 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,772 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,772 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,773 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,774 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,775 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,776 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,776 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,777 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,777 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,778 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,778 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,779 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,779 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,780 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,780 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,781 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,781 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,781 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,782 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,782 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,783 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,783 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,783 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,784 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,784 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,784 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,785 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,785 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,785 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,786 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,786 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,787 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,787 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,788 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,788 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,788 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,789 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,789 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,790 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,790 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,790 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,791 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,791 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,792 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,792 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,792 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,793 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,793 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,793 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,794 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,794 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,794 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,795 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,795 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,795 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,796 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,796 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,797 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,797 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,797 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,798 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,798 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,798 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,799 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,799 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,800 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,800 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,800 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,801 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,801 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,802 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,802 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,802 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,803 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,803 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,803 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,804 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,804 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,804 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,805 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,805 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,805 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,806 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,806 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,806 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,807 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,807 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,807 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,808 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,808 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,809 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,809 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,809 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,810 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,810 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,810 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,811 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,811 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,811 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,812 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,812 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,813 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,813 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,813 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,814 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,814 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,815 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,815 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,824 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,825 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,836 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,836 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,838 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,838 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,841 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,843 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,843 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,844 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,844 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,845 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,845 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,846 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,846 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,847 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,847 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,848 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,848 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,849 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,849 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,849 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,850 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,850 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,851 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,851 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,851 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,852 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,852 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,853 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,853 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,854 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,854 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,854 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,855 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,855 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:58,856 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 11:35:58,856 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:35:59,102 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 11:35:59,176 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 11:36:04,631 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: bbff095c713718e4e9019ee54121712d).
+2026-03-17 11:36:06,691 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 11:36:06,691 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 11:39:48,739 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 11:39:48,744 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 11:39:48,745 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 11:39:49,056 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 11:39:49,132 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 11:39:54,578 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: edc75d6ab09a39236446d34650e7e467).
+2026-03-17 11:39:56,613 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 11:39:56,614 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 12:54:32,135 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 12:54:32,330 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,338 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 12:54:32,364 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,366 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,368 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,372 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,383 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,384 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,384 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,385 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,386 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,387 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,388 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,390 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,391 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,392 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,393 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,394 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,396 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,396 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,398 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,398 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,399 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,400 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,400 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,401 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,401 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,402 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,402 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 12:54:32,403 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 12:54:32,758 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 12:54:32,834 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 12:54:38,676 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: a890150af16ea7e5b45dc218a0c3304e).
+2026-03-17 12:54:40,799 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 12:54:40,799 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 13:40:36,010 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 13:40:36,097 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,101 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 13:40:36,108 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,110 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,112 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,113 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,115 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,115 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,118 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,119 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,120 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,120 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,123 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,124 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,124 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,125 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,125 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 13:40:36,126 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 13:40:36,450 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 13:40:36,522 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 13:40:41,964 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: a0bc6d8fdeb2c7b75b0af6efc9e0159f).
+2026-03-17 13:40:44,095 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 13:40:44,096 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 13:42:55,118 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 13:42:55,115 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 13:42:55,487 - discord.gateway - INFO - Shard ID None has successfully RESUMED session a0bc6d8fdeb2c7b75b0af6efc9e0159f.
+2026-03-17 13:42:55,493 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 16:15:12,509 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 16:15:12,693 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,713 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 16:15:12,742 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,752 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,754 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,758 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,763 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,765 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,768 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,771 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,775 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,778 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,781 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,785 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,787 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,791 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,792 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,793 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,794 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,796 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,797 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,799 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,803 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,804 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,808 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,810 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,815 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,817 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,818 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,819 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,821 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,822 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,823 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,827 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,828 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,829 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,831 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,832 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,834 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,836 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,837 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,838 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,840 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,842 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,843 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,845 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,846 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,847 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,849 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,850 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,852 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,854 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,855 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,857 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,858 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,860 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,862 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,863 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:12,865 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:15:12,867 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:15:13,504 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 16:15:13,607 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 16:15:19,360 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 41b565f7d4a01838c3414ccf92198b9e).
+2026-03-17 16:15:21,466 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 16:15:21,467 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 16:55:33,351 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 16:55:33,462 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,468 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 16:55:33,474 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,475 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,476 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,476 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,477 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,479 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,480 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,480 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,481 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,481 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,482 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,482 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,483 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 16:55:33,483 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 16:55:33,859 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 16:55:33,936 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 16:55:39,409 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2d0fa32b9a57a887aec3f12d63b27e57).
+2026-03-17 16:55:41,481 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 16:55:41,481 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 16:56:57,545 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 16:56:57,895 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2d0fa32b9a57a887aec3f12d63b27e57.
+2026-03-17 16:56:57,918 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 17:10:37,117 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 17:10:37,120 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 17:10:37,473 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2d0fa32b9a57a887aec3f12d63b27e57.
+2026-03-17 17:10:37,474 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 17:53:42,046 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 17:53:42,146 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,150 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 17:53:42,157 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,158 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,159 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,160 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,161 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,161 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,162 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,162 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,162 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,163 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,163 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,164 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:42,164 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 17:53:42,165 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 17:53:43,452 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 17:53:43,576 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 17:53:49,417 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2aebbb42751a6bc4435919c32f2a4428).
+2026-03-17 17:53:51,498 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 17:53:51,499 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 19:58:07,971 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 19:58:08,302 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,328 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 19:58:08,384 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,394 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,411 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,412 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,441 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,443 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,450 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,455 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,457 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,465 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,476 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,479 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,483 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,489 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,492 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,498 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,526 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,530 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,558 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,560 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,565 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,568 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,570 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,571 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,572 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,573 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,574 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,575 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,575 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,576 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,576 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,577 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,578 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,578 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,579 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,579 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,580 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,581 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,583 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,584 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,586 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,586 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,587 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,588 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,588 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 19:58:08,589 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 19:58:08,901 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 19:58:08,973 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 19:58:14,464 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 68d339991fb43e036a85556709ba1455).
+2026-03-17 19:58:16,520 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 19:58:16,520 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 20:00:37,340 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:00:37,855 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:00:37,856 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:04:54,989 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:04:55,376 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:04:55,379 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:22:46,580 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:22:47,006 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:22:47,008 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:33:27,263 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 20:33:27,250 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 20:33:27,281 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:33:27,681 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:33:27,684 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:39:36,239 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:39:36,986 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:39:36,987 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:45:21,905 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:45:22,354 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:45:22,356 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 20:55:20,812 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 20:55:21,353 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 20:55:21,355 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:02:56,363 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:02:56,775 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 21:02:56,780 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:04:03,801 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:04:04,184 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 21:04:04,188 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:06:15,658 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:06:17,073 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 21:06:17,074 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:06:48,847 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:06:49,528 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 21:06:49,529 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:08:37,719 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:08:38,134 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 68d339991fb43e036a85556709ba1455.
+2026-03-17 21:08:38,135 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 21:23:09,319 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 21:23:09,328 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:23:10,085 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 21:23:10,252 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:23:15,918 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 9c6811fbaf72bd42c429ffa2d246f964).
+2026-03-17 21:23:17,993 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 21:23:17,993 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 21:44:49,400 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 21:44:49,406 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:44:49,409 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 21:44:49,410 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 21:44:49,411 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 21:44:49,412 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 21:44:49,831 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 21:44:49,928 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:44:55,435 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: c229ed865e805b3fd92663491ab8d985).
+2026-03-17 21:44:57,526 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 21:44:57,526 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 21:51:45,085 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 21:51:45,117 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:51:46,526 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 21:51:46,621 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 21:51:52,750 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b63e83d62b351a9ca3698a2690121041).
+2026-03-17 21:51:54,932 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 21:51:54,932 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 21:59:11,633 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "Comprarrandom" is not found
+2026-03-17 22:03:06,358 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 22:03:06,762 - discord.gateway - INFO - Shard ID None has successfully RESUMED session b63e83d62b351a9ca3698a2690121041.
+2026-03-17 22:03:06,764 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-17 22:20:00,112 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "Comprarrandom" is not found
+2026-03-17 22:41:17,275 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 22:41:17,331 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 22:41:17,333 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 22:41:17,341 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 22:41:17,342 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 22:41:17,343 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 22:41:17,345 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 22:41:17,967 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 22:41:18,119 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 22:41:23,740 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: bcf4e71c3d7dea4f4e3c91ed66a0ca9a).
+2026-03-17 22:41:25,793 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 22:41:25,793 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 23:14:33,137 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 23:14:33,235 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,239 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 23:14:33,247 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,248 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,248 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,249 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,251 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,252 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,252 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,253 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,253 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,254 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:33,254 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:14:33,255 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:14:34,446 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 23:14:35,284 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 23:14:41,126 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 0b593f2de764f4a3e660942ae5ecfef7).
+2026-03-17 23:14:43,289 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 23:14:43,289 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-17 23:56:45,756 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-17 23:56:46,064 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,103 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 23:56:46,146 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,152 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,154 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,156 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,171 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,172 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,173 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,174 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,174 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,177 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,177 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,179 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,181 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-17 23:56:46,182 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-17 23:56:46,690 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-17 23:56:46,783 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-17 23:56:52,504 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 685db9fd50f67edd103309e82b91e324).
+2026-03-17 23:56:54,601 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-17 23:56:54,601 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 00:39:43,914 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 00:39:44,146 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,155 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 00:39:44,189 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,194 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,196 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,197 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,207 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,209 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,210 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,214 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,215 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,216 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,217 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,227 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,229 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,231 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,233 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:39:44,235 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:39:44,549 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 00:39:44,621 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 00:39:50,194 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 0b510072776eb6a01ec25cf74cf1938f).
+2026-03-18 00:39:52,284 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 00:39:52,284 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 00:58:09,729 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 00:58:09,830 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:58:09,834 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 00:58:09,841 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:58:09,843 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:58:09,843 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 00:58:09,844 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 00:58:10,190 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 00:58:10,262 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 00:58:15,735 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 3a97d1386330f1614988c4e98915c3e2).
+2026-03-18 00:58:17,803 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 00:58:17,803 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 01:40:18,791 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 01:40:18,873 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,878 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 01:40:18,885 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,885 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,886 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,888 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,889 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,890 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,891 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,891 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,892 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,892 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,893 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,894 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:18,894 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 01:40:18,895 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 01:40:19,255 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 01:40:19,324 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 01:40:24,875 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 38cd47a8f77291c7ac6e487802cf220a).
+2026-03-18 01:40:26,947 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 01:40:26,948 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 02:22:04,997 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 02:22:05,120 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,126 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 02:22:05,143 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,148 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,149 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,150 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,151 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,152 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,153 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,154 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,157 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,158 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,160 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,161 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,165 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 02:22:05,166 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 02:22:05,528 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 02:22:05,596 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 02:22:12,384 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 0961f8a88ec86e486c33e60c28fcee03).
+2026-03-18 02:22:14,422 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 02:22:14,423 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:04:09,509 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:04:09,612 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,617 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:04:09,624 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,626 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,626 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,627 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,627 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,628 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,628 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,629 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,629 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,629 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,630 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,631 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,631 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,631 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,632 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:04:09,632 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:04:09,991 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 03:04:10,064 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:04:15,497 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: d9ee837952dd34a3c4e164e72a07c145).
+2026-03-18 03:04:17,630 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:04:17,630 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:31:57,920 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:31:58,329 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:31:58,348 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:31:58,383 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:31:58,385 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:31:58,386 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:31:58,399 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:31:58,413 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:31:58,415 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:31:58,419 - __main__ - INFO - 🔄 Intentando mantener conexión...
+2026-03-18 03:31:58,420 - __main__ - ERROR - Error cambiando actividad: Cannot write to closing transport
+2026-03-18 03:31:58,820 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 03:31:58,893 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:32:04,425 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 96033cd539c8ca9e254d394d985a88c7).
+2026-03-18 03:32:06,504 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:32:06,504 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:35:44,825 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:35:44,949 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:35:45,443 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 03:35:45,523 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:35:51,097 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 795c5317d83294fb65a4d704bd209ae2).
+2026-03-18 03:35:53,161 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:35:53,162 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:36:49,287 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:36:49,611 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "codigo" is not found
+2026-03-18 03:36:49,650 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 795c5317d83294fb65a4d704bd209ae2.
+2026-03-18 03:36:49,653 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:36:54,892 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "codigo" is not found
+2026-03-18 03:38:06,281 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:38:06,679 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 795c5317d83294fb65a4d704bd209ae2.
+2026-03-18 03:38:06,680 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:46:47,285 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 03:46:47,286 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 03:46:47,295 - discord.client - INFO - logging in using static token
+2026-03-18 03:46:47,789 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 03:46:47,876 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 03:46:47,877 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 03:46:47,878 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 03:46:47,884 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 03:46:47,885 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 03:46:47,893 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 03:46:48,457 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 1d8e7286e95552a2db2cf987109c4ee1).
+2026-03-18 03:46:50,492 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:46:50,493 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:48:26,815 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:48:26,818 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:48:26,819 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:48:27,200 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 1d8e7286e95552a2db2cf987109c4ee1.
+2026-03-18 03:48:27,206 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:51:41,934 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:51:41,936 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:51:41,939 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:51:41,941 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:51:41,943 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:51:41,946 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:51:41,949 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:51:42,253 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 03:51:42,326 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:51:47,778 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 4a05f4710d33693e5502e3581d24874e).
+2026-03-18 03:51:49,810 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:51:49,811 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:51:53,811 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "beneficios" is not found
+2026-03-18 03:52:40,288 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:52:40,770 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 4a05f4710d33693e5502e3581d24874e.
+2026-03-18 03:52:40,771 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "listaboletos" is not found
+2026-03-18 03:52:40,772 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:52:46,872 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "listaboletos" is not found
+2026-03-18 03:53:01,936 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "misventas" is not found
+2026-03-18 03:54:58,085 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:54:58,084 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:54:58,089 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:54:58,092 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:54:58,093 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:54:58,426 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 4a05f4710d33693e5502e3581d24874e.
+2026-03-18 03:54:58,427 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:54:58,429 - discord.ext.commands.bot - ERROR - Ignoring exception in command venderrandom
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 732, in transform
+    raise MissingRequiredArgument(param)
+discord.ext.commands.errors.MissingRequiredArgument: usuario is a required argument that is missing.
+2026-03-18 03:55:31,086 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:55:31,393 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 4a05f4710d33693e5502e3581d24874e.
+2026-03-18 03:55:31,393 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 03:58:35,680 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 03:58:35,682 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:58:35,686 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:58:35,688 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:58:35,690 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:58:35,691 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:58:35,693 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 03:58:35,995 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 03:58:36,066 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 03:58:41,684 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 88443d2341ec69e50c3a80567e6e0ab9).
+2026-03-18 03:58:43,724 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 03:58:43,724 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 03:58:57,998 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "estadisticas" is not found
+2026-03-18 04:00:28,298 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:00:28,297 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:00:28,302 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:00:28,306 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:00:28,652 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 88443d2341ec69e50c3a80567e6e0ab9.
+2026-03-18 04:00:28,659 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:04:25,800 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:04:25,829 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,886 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:04:25,903 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,907 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,908 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,912 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,913 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:25,914 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:04:26,269 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 04:04:26,343 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:07:19,169 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 04:07:19,170 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 04:07:19,179 - discord.client - INFO - logging in using static token
+2026-03-18 04:07:19,790 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 04:07:19,840 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 04:07:19,840 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 04:07:19,841 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 04:07:19,844 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 04:07:19,846 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 04:07:19,853 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 04:07:20,486 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 2a0f8984558677fded6ad687d38f7d8b).
+2026-03-18 04:07:22,532 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:07:22,532 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:08:54,325 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:08:54,322 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:08:54,328 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:08:54,332 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:08:54,652 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2a0f8984558677fded6ad687d38f7d8b.
+2026-03-18 04:08:54,659 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:09:34,006 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:09:34,320 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 2a0f8984558677fded6ad687d38f7d8b.
+2026-03-18 04:09:34,320 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:10:08,248 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 04:10:08,249 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 04:10:08,258 - discord.client - INFO - logging in using static token
+2026-03-18 04:10:08,777 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 04:10:08,818 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 04:10:08,819 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 04:10:08,819 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 04:10:08,823 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 04:10:08,824 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 04:10:08,833 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 04:10:09,448 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 00ef17e56f7ff6d3969ccee0e5ee85e0).
+2026-03-18 04:10:11,496 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:10:11,496 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:12:11,876 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:12:11,882 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:12:11,888 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:12:12,215 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 00ef17e56f7ff6d3969ccee0e5ee85e0.
+2026-03-18 04:12:12,226 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:12:12,232 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "auditoria" is not found
+2026-03-18 04:12:33,867 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 04:12:33,868 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 04:12:33,876 - discord.client - INFO - logging in using static token
+2026-03-18 04:12:34,344 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 04:12:34,398 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 04:12:34,399 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 04:12:34,399 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 04:12:34,402 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 04:12:34,404 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 04:12:34,410 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 04:12:34,904 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 72e47d20abffa1515eb33445eec6801c).
+2026-03-18 04:12:36,940 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:12:36,940 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:12:52,192 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "auditoria" is not found
+2026-03-18 04:13:20,606 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:13:21,079 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 72e47d20abffa1515eb33445eec6801c.
+2026-03-18 04:13:21,083 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:13:21,087 - discord.ext.commands.bot - ERROR - Ignoring exception in command setnivel
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1056, in invoke
+    await self.prepare(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 973, in prepare
+    await self._parse_arguments(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 880, in _parse_arguments
+    transformed = await self.transform(ctx, param, attachments)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 732, in transform
+    raise MissingRequiredArgument(param)
+discord.ext.commands.errors.MissingRequiredArgument: nivel is a required argument that is missing.
+2026-03-18 04:13:21,112 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:14:29,132 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "auditoria" is not found
+2026-03-18 04:14:32,735 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:15:16,108 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:15:16,128 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:15:16,443 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 72e47d20abffa1515eb33445eec6801c.
+2026-03-18 04:15:16,462 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:15:16,466 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "reporte" is not found
+2026-03-18 04:15:16,467 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "estadisticas" is not found
+2026-03-18 04:15:40,401 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:15:48,811 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:15:49,149 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 72e47d20abffa1515eb33445eec6801c.
+2026-03-18 04:15:49,152 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:15:54,613 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:18:03,238 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:18:03,243 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:18:03,246 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:18:03,253 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:18:03,255 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:18:03,745 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 04:18:03,853 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:18:04,404 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:18:09,541 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: f97735a370157559bd9cb47ea7ca239e).
+2026-03-18 04:18:11,592 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:18:11,592 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:20:43,360 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:20:43,362 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:20:43,386 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:20:43,392 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:20:43,401 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:20:43,402 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:20:43,720 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 04:20:43,792 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:20:54,443 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: f339da5b6f16a81982fb9196b1c25ae2).
+2026-03-18 04:20:56,482 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:20:56,483 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:22:22,614 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 04:22:22,615 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 04:22:22,634 - discord.client - INFO - logging in using static token
+2026-03-18 04:22:23,098 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 04:22:23,159 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 04:22:23,160 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 04:22:23,161 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 04:22:23,173 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 04:22:23,176 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 04:22:23,189 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 04:22:23,794 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 20bdc589edd695b4d6acd75e64e3470c).
+2026-03-18 04:22:25,826 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:22:25,826 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:22:54,663 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:23:23,075 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:23:23,173 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:23:23,737 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 20bdc589edd695b4d6acd75e64e3470c.
+2026-03-18 04:23:23,744 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:23:23,748 - discord.ext.commands.bot - ERROR - Ignoring exception in command None
+discord.ext.commands.errors.CommandNotFound: Command "referido" is not found
+2026-03-18 04:24:05,268 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2026-03-18 04:24:05,268 - discord.client - WARNING - davey is not installed, voice will NOT be supported
+2026-03-18 04:24:05,277 - discord.client - INFO - logging in using static token
+2026-03-18 04:24:05,773 - __main__ - INFO - 🚀 Iniciando configuración del bot...
+2026-03-18 04:24:05,825 - __main__ - INFO - ✅ Tablas de sistemas inicializadas
+2026-03-18 04:24:05,826 - __main__ - INFO - ✅ Base de datos inicializada correctamente
+2026-03-18 04:24:05,826 - __main__ - INFO - ✅ Tareas automáticas iniciadas
+2026-03-18 04:24:05,829 - __main__ - ERROR - Error en keep_alive_task: 'NoneType' object has no attribute 'change_presence'
+2026-03-18 04:24:05,831 - __main__ - WARNING - ⚠️ Bot no está ready, intentando mantener conexión...
+2026-03-18 04:24:05,840 - __main__ - WARNING - No se encontró el canal 1483378335831560202
+2026-03-18 04:24:09,558 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 5f0915f373f57461c4ead21bc6782d3e).
+2026-03-18 04:24:11,578 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:24:11,578 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:25:04,767 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:25:04,782 - discord.ext.commands.bot - ERROR - Ignoring exception in command verniveles
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 266, in wrapped
+    ret = await coro(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/home/vp-rifas-bot/main.py", line 1390, in cmd_ver_niveles
+    texto = f"Gasto: ${n['gasto_minimo']:,} - ${n['gasto_maximo'] or '∞':,}\n"
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Cannot specify ',' with 's'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/bot.py", line 1376, in invoke
+    await ctx.command.invoke(ctx)
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 1064, in invoke
+    await injected(*ctx.args, **ctx.kwargs)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/data/com.termux/files/usr/lib/python3.13/site-packages/discord/ext/commands/core.py", line 275, in wrapped
+    raise CommandInvokeError(exc) from exc
+discord.ext.commands.errors.CommandInvokeError: Command raised an exception: ValueError: Cannot specify ',' with 's'.
+2026-03-18 04:25:05,304 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 5f0915f373f57461c4ead21bc6782d3e.
+2026-03-18 04:25:05,307 - __main__ - INFO - 🔄 Bot reconectado
+2026-03-18 04:28:38,676 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:28:38,678 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:28:38,683 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:28:38,689 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:28:38,691 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:28:38,694 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:28:38,697 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:28:39,024 - discord.gateway - INFO - Shard ID None session has been invalidated.
+2026-03-18 04:28:39,093 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:28:45,482 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 22624cb45db230b61cce0730ef5d82fb).
+2026-03-18 04:28:47,511 - __main__ - INFO - ✅ Bot conectado como VP Rifas#0688 (ID: 1483015813320675338)
+2026-03-18 04:28:47,511 - __main__ - INFO - 🌐 En 1 servidores
+2026-03-18 04:32:45,994 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:32:45,994 - discord.gateway - WARNING - Shard ID None has stopped responding to the gateway. Closing and restarting.
+2026-03-18 04:32:45,998 - __main__ - WARNING - ⚠️ Bot desconectado
+2026-03-18 04:32:46,003 - __main__ - ERROR - Error en keep_alive_task: Cannot write to closing transport
+2026-03-18 04:32:46,365 - discord.gateway - INFO - Shard ID None has successfully RESUMED session 22624cb45db230b61cce0730ef5d82fb.
+2026-03-18 04:32:46,366 - __main__ - INFO - 🔄 Bot reconectado
