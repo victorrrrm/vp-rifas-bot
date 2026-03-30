@@ -25,7 +25,7 @@ os.makedirs('backups', exist_ok=True)
 # CONFIGURACIÓN GLOBAL
 # ============================================
 
-VERSION = "3.3.1"
+VERSION = "4.0.0"
 PREFIX = "!"
 start_time = datetime.now()
 reconnect_attempts = 0
@@ -36,10 +36,35 @@ reset_user_pending = None
 sorteo_en_curso = False
 sorteo_cancelado = False
 
+# Variables de eventos activos
+evento_2x1 = False
+evento_cashback_doble = False
+evento_oferta_porcentaje = 0
+evento_oferta_activa = False
+
+# Configuración de sistemas
 REFERIDOS_PORCENTAJE = 10
 REFERIDOS_DESCUENTO = 10
 CASHBACK_PORCENTAJE = 10
+COMISION_VENDEDOR = 10
 
+# Jackpot
+jackpot_activo = False
+jackpot_base = 0
+jackpot_porcentaje = 0
+jackpot_rifa_id = 0
+jackpot_total = 0
+jackpot_canal_id = 1486253228499931228
+
+# Rifa Eliminación
+rifa_eliminacion_activa = False
+rifa_eliminacion_total = 0
+rifa_eliminacion_premio = ""
+rifa_eliminacion_valor = 0
+rifa_eliminacion_numeros = []
+rifa_eliminacion_canal_id = 1486257489560342548
+
+# IDs de roles
 ROLES_FIDELIZACION = {
     'BRONCE': 1483720270496661515,
     'PLATA': 1483720387178139758,
@@ -96,13 +121,15 @@ class VPRifasBot(commands.Bot):
             logger.error(f"❌ Error inicializando BD: {e}")
             traceback.print_exc()
         
+        # Iniciar tareas
         self.keep_alive_task.start()
         self.status_task.start()
+        self.actualizar_jackpot_task.start()
         logger.info("✅ Tareas automáticas iniciadas")
     
     async def init_sistemas_tablas(self):
         async with aiosqlite.connect('data/rifas.db') as db:
-            # Tabla de códigos de referidos
+            # Tablas existentes...
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS referidos_codigos (
                     usuario_id TEXT PRIMARY KEY,
@@ -111,7 +138,6 @@ class VPRifasBot(commands.Bot):
                 )
             ''')
             
-            # Tabla de relaciones referido-referidor
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS referidos_relaciones (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,7 +151,6 @@ class VPRifasBot(commands.Bot):
                 )
             ''')
             
-            # Tabla de comisiones pagadas
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS referidos_comisiones (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,7 +164,6 @@ class VPRifasBot(commands.Bot):
                 )
             ''')
             
-            # Tabla de configuración de referidos
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS referidos_config (
                     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -154,7 +178,6 @@ class VPRifasBot(commands.Bot):
                 VALUES (1, 10, 10)
             ''')
             
-            # Tabla de fidelización por gasto
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS fidelizacion (
                     usuario_id TEXT PRIMARY KEY,
@@ -164,7 +187,6 @@ class VPRifasBot(commands.Bot):
                 )
             ''')
             
-            # Tabla de configuración de niveles
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS fidelizacion_config (
                     nivel TEXT PRIMARY KEY,
@@ -196,7 +218,6 @@ class VPRifasBot(commands.Bot):
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', nivel)
             
-            # Tabla de cashback
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS cashback (
                     usuario_id TEXT PRIMARY KEY,
@@ -206,7 +227,6 @@ class VPRifasBot(commands.Bot):
                 )
             ''')
             
-            # Tabla de configuración de cashback
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS cashback_config (
                     id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -221,9 +241,138 @@ class VPRifasBot(commands.Bot):
                 VALUES (1, 10, 'LUNES')
             ''')
             
+            # Tabla de vendedores
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS vendedores (
+                    discord_id TEXT PRIMARY KEY,
+                    nombre TEXT NOT NULL,
+                    comision INTEGER DEFAULT 10,
+                    total_ventas INTEGER DEFAULT 0,
+                    comisiones_pendientes INTEGER DEFAULT 0,
+                    comisiones_pagadas INTEGER DEFAULT 0,
+                    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de clientes
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS clientes (
+                    discord_id TEXT PRIMARY KEY,
+                    nombre TEXT NOT NULL,
+                    total_compras INTEGER DEFAULT 0,
+                    total_gastado INTEGER DEFAULT 0,
+                    ultima_compra TIMESTAMP,
+                    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de transacciones
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS transacciones (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tipo TEXT NOT NULL,
+                    boleto_id INTEGER,
+                    monto INTEGER NOT NULL,
+                    origen_id TEXT,
+                    destino_id TEXT,
+                    descripcion TEXT,
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de usuarios balance
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS usuarios_balance (
+                    discord_id TEXT PRIMARY KEY,
+                    nombre TEXT NOT NULL,
+                    balance INTEGER DEFAULT 0,
+                    ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de códigos promocionales
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS codigos_promocionales (
+                    codigo TEXT PRIMARY KEY,
+                    recompensa INTEGER NOT NULL,
+                    creador_id TEXT NOT NULL,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    activo BOOLEAN DEFAULT 1
+                )
+            ''')
+            
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS codigos_canjeados (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    codigo TEXT NOT NULL,
+                    usuario_id TEXT NOT NULL,
+                    fecha_canje TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (codigo) REFERENCES codigos_promocionales(codigo),
+                    UNIQUE(codigo, usuario_id)
+                )
+            ''')
+            
+            # Tabla de puntos de revancha
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS puntos_revancha (
+                    usuario_id TEXT PRIMARY KEY,
+                    puntos INTEGER DEFAULT 0,
+                    ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Tabla de jackpot
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS jackpot (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    rifa_id INTEGER NOT NULL,
+                    base INTEGER NOT NULL,
+                    porcentaje INTEGER NOT NULL,
+                    total INTEGER DEFAULT 0,
+                    activo BOOLEAN DEFAULT 0
+                )
+            ''')
+            
             await db.commit()
         
         logger.info("✅ Tablas de sistemas inicializadas")
+    
+    @tasks.loop(seconds=5)
+    async def actualizar_jackpot_task(self):
+        """Actualiza el mensaje de jackpot cada 5 segundos"""
+        global jackpot_activo, jackpot_total, jackpot_canal_id
+        
+        if not jackpot_activo:
+            return
+        
+        try:
+            canal = self.get_channel(jackpot_canal_id)
+            if not canal:
+                return
+            
+            # Buscar mensaje fijado existente
+            mensaje_jackpot = None
+            async for msg in canal.history(limit=50):
+                if msg.author == self.user and msg.pinned:
+                    mensaje_jackpot = msg
+                    break
+            
+            embed = discord.Embed(
+                title="🎰 **JACKPOT ACTIVO** 🎰",
+                description=f"**Premio acumulado:** ${jackpot_total:,} VP$",
+                color=0xFFD700
+            )
+            embed.add_field(name="💎 Base", value=f"${jackpot_base:,}", inline=True)
+            embed.add_field(name="📊 % por boleto", value=f"{jackpot_porcentaje}%", inline=True)
+            embed.set_footer(text="¡Cada boleto comprado aumenta el premio!")
+            
+            if mensaje_jackpot:
+                await mensaje_jackpot.edit(embed=embed)
+            else:
+                msg = await canal.send(embed=embed)
+                await msg.pin()
+        except:
+            pass
     
     async def on_ready(self):
         logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
@@ -318,6 +467,19 @@ async def enviar_log(ctx, accion, detalles):
         embed.add_field(name="📌 Canal", value=ctx.channel.name, inline=True)
         
         await canal_logs.send(embed=embed)
+    except:
+        pass
+
+async def enviar_dm(usuario_id, titulo, mensaje):
+    """Envía un mensaje privado al usuario"""
+    try:
+        usuario = await bot.fetch_user(int(usuario_id))
+        embed = discord.Embed(
+            title=titulo,
+            description=mensaje,
+            color=0x0099FF
+        )
+        await usuario.send(embed=embed)
     except:
         pass
 
@@ -427,12 +589,19 @@ async def actualizar_fidelizacion(usuario_id, monto_compra):
         return nuevo_nivel
 
 async def aplicar_cashback(usuario_id, monto_compra):
+    """Aplica cashback a un usuario (incluye evento doble)"""
+    global evento_cashback_doble
+    
     async with aiosqlite.connect('data/rifas.db') as db:
         cursor = await db.execute('''
             SELECT porcentaje FROM cashback_config WHERE id = 1
         ''')
         config_cb = await cursor.fetchone()
         porcentaje = config_cb[0] if config_cb else 10
+        
+        # Aplicar evento de cashback doble
+        if evento_cashback_doble:
+            porcentaje = porcentaje * 2
         
         cashback = int(monto_compra * porcentaje / 100)
         
@@ -448,6 +617,9 @@ async def aplicar_cashback(usuario_id, monto_compra):
         return cashback
 
 async def obtener_descuento_usuario(usuario_id):
+    """Obtiene el porcentaje de descuento de un usuario según su nivel (incluye evento oferta)"""
+    global evento_oferta_activa, evento_oferta_porcentaje
+    
     async with aiosqlite.connect('data/rifas.db') as db:
         cursor = await db.execute('''
             SELECT f.nivel, fc.descuento 
@@ -457,9 +629,13 @@ async def obtener_descuento_usuario(usuario_id):
         ''', (usuario_id,))
         result = await cursor.fetchone()
         
-        if result:
-            return result[1]
-        return 0
+        descuento_base = result[1] if result else 0
+        
+        # Aplicar evento de oferta
+        if evento_oferta_activa:
+            descuento_base += evento_oferta_porcentaje
+        
+        return min(descuento_base, 50)  # Máximo 50% de descuento
 
 async def procesar_comision_referido(comprador_id, monto_compra):
     async with aiosqlite.connect('data/rifas.db') as db:
@@ -499,6 +675,48 @@ async def procesar_comision_referido(comprador_id, monto_compra):
         
         await db.commit()
 
+async def procesar_comision_vendedor(vendedor_id, monto_compra):
+    """Procesa la comisión para el vendedor"""
+    global COMISION_VENDEDOR
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        comision = int(monto_compra * COMISION_VENDEDOR / 100)
+        
+        await db.execute('''
+            INSERT INTO vendedores (discord_id, nombre, comisiones_pendientes)
+            VALUES (?, (SELECT nombre FROM clientes WHERE discord_id = ?), ?)
+            ON CONFLICT(discord_id) DO UPDATE SET
+                comisiones_pendientes = comisiones_pendientes + ?,
+                total_ventas = total_ventas + 1
+        ''', (vendedor_id, vendedor_id, comision, comision))
+        
+        await db.commit()
+
+async def agregar_puntos_revancha(usuario_id, boletos_perdidos):
+    """Agrega puntos de revancha por boletos perdidos"""
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            INSERT INTO puntos_revancha (usuario_id, puntos)
+            VALUES (?, ?)
+            ON CONFLICT(usuario_id) DO UPDATE SET
+                puntos = puntos + ?
+        ''', (usuario_id, boletos_perdidos, boletos_perdidos))
+        await db.commit()
+
+async def actualizar_jackpot(monto_compra):
+    """Actualiza el jackpot con el porcentaje de la compra"""
+    global jackpot_activo, jackpot_total, jackpot_rifa_id, jackpot_porcentaje, jackpot_base
+    
+    if not jackpot_activo:
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa or rifa_activa['id'] != jackpot_rifa_id:
+        return
+    
+    aporte = int(monto_compra * jackpot_porcentaje / 100)
+    jackpot_total += aporte
+
 # ============================================
 # COMANDOS DE USUARIO
 # ============================================
@@ -527,6 +745,9 @@ async def cmd_ayuda(ctx):
     `!topvp` - Ranking de VP$
     `!ranking` - Top compradores
     `!historial` - Tu historial
+    `!celiminacion [número]` - Comprar en rifa eliminación
+    `!beliminacion` - Ver números disponibles en rifa eliminación
+    `!mispuntos` - Ver puntos de revancha
     """
     embed.add_field(name="👤 **BÁSICOS**", value=basicos, inline=False)
     
@@ -546,6 +767,11 @@ async def cmd_ayuda(ctx):
     """
     embed.add_field(name="🏆 **FIDELIZACIÓN**", value=fidelizacion, inline=False)
     
+    promociones = """
+    `!canjear [código]` - Canjear código promocional
+    """
+    embed.add_field(name="🎁 **PROMOCIONES**", value=promociones, inline=False)
+    
     if es_vendedor or es_director or es_ceo:
         vendedor = """
         `!vender [@usuario] [número]` - Vender número específico
@@ -557,16 +783,24 @@ async def cmd_ayuda(ctx):
     
     if es_director or es_ceo:
         director = """
-        `!crearifa [nombre] [premio] [valor] [precio] [total]` - Crear rifa
+        `!crearifa [premio] [precio] [total]` - Crear rifa
         `!aumentarnumeros [cantidad]` - Ampliar rifa
         `!cerrarifa` - Cerrar rifa
         `!iniciarsorteo [ganadores]` - Iniciar sorteo
         `!cancelarsorteo` - Cancelar sorteo
         `!finalizarrifa [id] [ganadores]` - Finalizar rifa
         `!vendedoradd [@usuario] [%]` - Añadir vendedor
-        `!pagarcomisiones` - Ver comisiones
-        `!confirmarpago [@usuario]` - Pagar comisiones
+        `!vercomisiones` - Ver comisiones
+        `!pagarcomisiones` - Pagar comisiones
         `!reporte` - Reporte de rifa
+        `!balance [@usuario]` - Ver balance de usuario
+        `!rankingreset` - Resetear ranking
+        `!topgastadoresreset` - Resetear top gastadores
+        `!setnivel` - Configurar niveles
+        `!setcomision [%]` - Configurar comisión vendedores
+        `!alertar [mensaje]` - Alerta a todos
+        `!rifaeliminacion [total] [premio] [valor]` - Iniciar rifa eliminación
+        `!rifaeliminacionr` - Eliminar número de rifa eliminación
         """
         embed.add_field(name="🎯 **DIRECTORES**", value=director, inline=False)
     
@@ -586,6 +820,17 @@ async def cmd_ayuda(ctx):
         `!backup` - Crear backup
         `!resetallsistema` - Reiniciar sistema
         `!version` - Versión del bot
+        `!crearcodigo [codigo] [vp]` - Crear código promocional
+        `!borrarcodigo [codigo]` - Borrar código promocional
+        `!2x1` - Activar/desactivar evento 2x1
+        `!cashbackdoble` - Activar/desactivar cashback doble
+        `!oferta [%]` - Activar oferta
+        `!ofertadesactivar` - Desactivar oferta
+        `!jackpot [base] [%] [id_rifa]` - Iniciar jackpot
+        `!jackpotreset` - Resetear jackpot
+        `!jackpotsortear [ganadores]` - Sortear jackpot
+        `!puntosreset` - Resetear todos los puntos
+        `!puntosreset [@usuario]` - Resetear puntos de un usuario
         """
         embed.add_field(name="👑 **CEO**", value=ceo, inline=False)
     
@@ -650,8 +895,18 @@ async def cmd_comprar_random(ctx, cantidad: int = 1):
         return
     
     precio_boleto = rifa_activa['precio_boleto']
-    precio_total = precio_boleto * cantidad
     descuento = await obtener_descuento_usuario(str(ctx.author.id))
+    
+    # Aplicar evento 2x1
+    global evento_2x1
+    boletos_a_pagar = cantidad
+    boletos_a_recibir = cantidad
+    
+    if evento_2x1:
+        boletos_a_pagar = cantidad // 2 + (cantidad % 2)
+        boletos_a_recibir = cantidad
+    
+    precio_total = precio_boleto * boletos_a_pagar
     precio_con_descuento = int(precio_total * (100 - descuento) / 100)
     
     async with aiosqlite.connect('data/rifas.db') as db:
@@ -665,7 +920,7 @@ async def cmd_comprar_random(ctx, cantidad: int = 1):
         await ctx.send(embed=embeds.crear_embed_error(f"Necesitas {precio_con_descuento} VP$"))
         return
     
-    seleccionados = random.sample(disponibles, cantidad)
+    seleccionados = random.sample(disponibles, boletos_a_recibir)
     comprados = []
     
     async with aiosqlite.connect('data/rifas.db') as db:
@@ -682,20 +937,21 @@ async def cmd_comprar_random(ctx, cantidad: int = 1):
         
         await db.commit()
     
+    # Actualizar sistemas
     await actualizar_fidelizacion(str(ctx.author.id), precio_con_descuento)
     cashback = await aplicar_cashback(str(ctx.author.id), precio_con_descuento)
     await procesar_comision_referido(str(ctx.author.id), precio_con_descuento)
+    await actualizar_jackpot(precio_con_descuento)
     
-    embed = discord.Embed(
-        title="✅ Compra exitosa",
-        description=f"**Tus números:** {', '.join(map(str, comprados))}\n"
-                    f"**Total:** ${precio_con_descuento}\n"
-                    f"**Descuento:** {descuento}%\n"
-                    f"**Cashback:** ${cashback}",
-        color=config.COLORS['success']
-    )
-    await ctx.send(embed=embed)
-    await enviar_log(ctx, "🎟️ COMPRA", f"{ctx.author.name} compró {len(comprados)} boletos")
+    # Notificar al usuario por DM
+    await enviar_dm(str(ctx.author.id), "✅ Compra realizada", 
+                    f"Has comprado {len(comprados)} boletos: {', '.join(map(str, comprados))}\n"
+                    f"Total: ${precio_con_descuento}\n"
+                    f"Descuento: {descuento}%\n"
+                    f"Cashback acumulado: ${cashback}")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Compra realizada! Revisa tu DM."))
 
 @bot.command(name="misboletos")
 async def cmd_mis_boletos(ctx):
@@ -727,19 +983,26 @@ async def cmd_mis_boletos(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="balance")
-async def cmd_balance(ctx):
+async def cmd_balance(ctx, usuario: discord.Member = None):
     if not await verificar_canal(ctx):
+        return
+    
+    # Si no se especifica usuario y el que ejecuta no es admin, solo ve su balance
+    target = usuario if usuario else ctx.author
+    
+    if usuario and not await check_admin(ctx):
+        await ctx.send(embed=embeds.crear_embed_error("No tienes permiso para ver el balance de otros"))
         return
     
     async with aiosqlite.connect('data/rifas.db') as db:
         cursor = await db.execute('''
             SELECT balance FROM usuarios_balance WHERE discord_id = ?
-        ''', (str(ctx.author.id),))
+        ''', (str(target.id),))
         result = await cursor.fetchone()
         balance = result[0] if result else 0
     
     embed = discord.Embed(
-        title="💰 Tu balance",
+        title=f"💰 Balance de {target.name}",
         description=f"**{balance} VP$**",
         color=config.COLORS['primary']
     )
@@ -776,24 +1039,31 @@ async def cmd_ranking(ctx):
     if not await verificar_canal(ctx):
         return
     
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
     async with aiosqlite.connect('data/rifas.db') as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute('''
-            SELECT nombre, total_compras, total_gastado 
-            FROM clientes 
-            ORDER BY total_gastado DESC 
+            SELECT comprador_nick, COUNT(*) as boletos
+            FROM boletos 
+            WHERE rifa_id = ?
+            GROUP BY comprador_id
+            ORDER BY boletos DESC
             LIMIT 10
-        ''')
-        usuarios = await cursor.fetchall()
+        ''', (rifa_activa['id'],))
+        ranking = await cursor.fetchall()
+    
+    if not ranking:
+        await ctx.send(embed=embeds.crear_embed_info("Sin datos", "Aún no hay compras en esta rifa"))
+        return
     
     embed = discord.Embed(title="🏆 TOP COMPRADORES", color=config.COLORS['primary'])
-    for i, u in enumerate(usuarios, 1):
+    for i, u in enumerate(ranking, 1):
         medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
-        embed.add_field(
-            name=f"{medalla} {u['nombre']}",
-            value=f"{u['total_compras']} boletos | ${u['total_gastado']}",
-            inline=False
-        )
+        embed.add_field(name=f"{medalla} {u['comprador_nick']}", value=f"[{u['boletos']}]", inline=False)
     
     await ctx.send(embed=embed)
 
@@ -946,7 +1216,8 @@ async def cmd_set_ref_comision(ctx, porcentaje: int):
         ''', (porcentaje,))
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Comisión: {porcentaje}%"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Comisión referidos: {porcentaje}%"))
 
 @bot.command(name="setrefdescuento")
 async def cmd_set_ref_descuento(ctx, porcentaje: int):
@@ -966,10 +1237,11 @@ async def cmd_set_ref_descuento(ctx, porcentaje: int):
         ''', (porcentaje,))
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Descuento: {porcentaje}%"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Descuento referidos: {porcentaje}%"))
 
 # ============================================
-# SISTEMA DE FIDELIZACIÓN (CORREGIDO)
+# SISTEMA DE FIDELIZACIÓN
 # ============================================
 
 @bot.command(name="nivel")
@@ -1041,13 +1313,26 @@ async def cmd_top_gastadores(ctx):
     embed = discord.Embed(title="🏆 TOP GASTADORES", color=config.COLORS['primary'])
     for i, u in enumerate(top, 1):
         nombre = u['nombre'] or "Usuario"
+        medalla = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"{i}.")
         embed.add_field(
-            name=f"{i}. {nombre}",
+            name=f"{medalla} {nombre}",
             value=f"Gastado: ${u['gasto_total']} | {u['nivel']}",
             inline=False
         )
     
     await ctx.send(embed=embed)
+
+@bot.command(name="topgastadoresreset")
+async def cmd_top_gastadores_reset(ctx):
+    if not await check_ceo(ctx):
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('UPDATE fidelizacion SET gasto_total = 0, nivel = "BRONCE"')
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("Ranking de gastadores reseteado"))
 
 @bot.command(name="verniveles")
 async def cmd_ver_niveles(ctx):
@@ -1079,7 +1364,6 @@ async def cmd_ver_niveles(ctx):
         if n['rifas_exclusivas']:
             beneficios.append(f"✨ Excl")
         
-        # Formato simple sin comas para evitar errores
         minimo = str(n['gasto_minimo'])
         maximo = str(n['gasto_maximo']) if n['gasto_maximo'] else '∞'
         rango = f"${minimo} - ${maximo}"
@@ -1092,17 +1376,22 @@ async def cmd_ver_niveles(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="setnivel")
-async def cmd_set_nivel(ctx, nivel: str, campo: str, valor: str):
-    """Configura los beneficios de un nivel"""
+async def cmd_set_nivel(ctx, nivel: str = None, campo: str = None, valor: str = None):
+    """Configura los beneficios de un nivel (menú interactivo)"""
     if not await check_ceo(ctx):
-        await ctx.send("❌ Solo el CEO puede usar este comando")
+        return
+    
+    niveles_validos = ['BRONCE', 'PLATA', 'ORO', 'PLATINO', 'DIAMANTE', 'MASTER']
+    
+    if not nivel:
+        await ctx.send("Uso: `!setnivel [nivel] [campo] [valor]`\n"
+                       "Niveles: BRONCE, PLATA, ORO, PLATINO, DIAMANTE, MASTER\n"
+                       "Campos: descuento, gratis_cada, gratis_cantidad, anticipo_horas, canal_vip, rifas_exclusivas")
         return
     
     nivel = nivel.upper()
-    niveles_validos = ['BRONCE', 'PLATA', 'ORO', 'PLATINO', 'DIAMANTE', 'MASTER']
-    
     if nivel not in niveles_validos:
-        await ctx.send(embed=embeds.crear_embed_error(f"Niveles: {', '.join(niveles_validos)}"))
+        await ctx.send(embed=embeds.crear_embed_error(f"Nivel inválido. Niveles: {', '.join(niveles_validos)}"))
         return
     
     campos_validos = {
@@ -1115,7 +1404,7 @@ async def cmd_set_nivel(ctx, nivel: str, campo: str, valor: str):
     }
     
     if campo not in campos_validos:
-        await ctx.send(embed=embeds.crear_embed_error(f"Campos: {', '.join(campos_validos.keys())}"))
+        await ctx.send(embed=embeds.crear_embed_error(f"Campo inválido. Campos: {', '.join(campos_validos.keys())}"))
         return
     
     columna = campos_validos[campo]
@@ -1135,6 +1424,7 @@ async def cmd_set_nivel(ctx, nivel: str, campo: str, valor: str):
         ''', (valor_int, nivel))
         await db.commit()
     
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito(f"Nivel {nivel}: {campo} = {valor_int}"))
 
 # ============================================
@@ -1210,6 +1500,7 @@ async def cmd_set_cashback(ctx, porcentaje: int):
         ''', (porcentaje,))
         await db.commit()
     
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito(f"Cashback: {porcentaje}%"))
 
 @bot.command(name="pagarcashback")
@@ -1217,7 +1508,7 @@ async def cmd_pagar_cashback(ctx):
     if not await check_ceo(ctx):
         return
     
-    await ctx.send("💰 Procesando pagos...")
+    await ctx.send("💰 Procesando pagos de cashback...")
     
     async with aiosqlite.connect('data/rifas.db') as db:
         db.row_factory = aiosqlite.Row
@@ -1227,27 +1518,42 @@ async def cmd_pagar_cashback(ctx):
         usuarios = await cursor.fetchall()
         
         if not usuarios:
-            await ctx.send(embed=embeds.crear_embed_error("No hay cashback"))
+            await ctx.send(embed=embeds.crear_embed_error("No hay cashback para pagar"))
             return
         
         total_pagado = 0
         for u in usuarios:
+            monto = u['cashback_acumulado']
+            
+            # Acreditar al balance
             await db.execute('''
                 INSERT INTO usuarios_balance (discord_id, nombre, balance)
                 VALUES (?, (SELECT nombre FROM clientes WHERE discord_id = ?), ?)
                 ON CONFLICT(discord_id) DO UPDATE SET
                     balance = balance + ?
-            ''', (u['usuario_id'], u['usuario_id'], u['cashback_acumulado'], u['cashback_acumulado']))
+            ''', (u['usuario_id'], u['usuario_id'], monto, monto))
             
+            # Registrar transacción
             await db.execute('''
-                UPDATE cashback SET cashback_acumulado = 0 WHERE usuario_id = ?
-            ''', (u['usuario_id'],))
+                INSERT INTO transacciones (tipo, monto, destino_id, descripcion)
+                VALUES ('cashback', ?, ?, ?)
+            ''', (monto, u['usuario_id'], f"Pago de cashback"))
             
-            total_pagado += u['cashback_acumulado']
+            # Resetear cashback
+            await db.execute('''
+                UPDATE cashback SET cashback_acumulado = 0, cashback_recibido = cashback_recibido + ?
+                WHERE usuario_id = ?
+            ''', (monto, u['usuario_id']))
+            
+            total_pagado += monto
+            
+            # Notificar al usuario por DM
+            await enviar_dm(u['usuario_id'], "💰 Cashback pagado", f"Has recibido ${monto} VP$ por cashback")
         
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Pagados ${total_pagado}"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Pagados ${total_pagado} VP$ de cashback a {len(usuarios)} usuarios"))
 
 @bot.command(name="resetcashback")
 async def cmd_reset_cashback(ctx):
@@ -1258,6 +1564,7 @@ async def cmd_reset_cashback(ctx):
         await db.execute('UPDATE cashback SET cashback_acumulado = 0')
         await db.commit()
     
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito("Cashback reseteados"))
 
 # ============================================
@@ -1314,9 +1621,25 @@ async def cmd_vender(ctx, usuario: discord.Member, numero: int):
         
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(
-        f"Venta a {usuario.name}\nNúmero: #{numero}\nTotal: ${precio_final}"
-    ))
+    # Actualizar sistemas
+    await actualizar_fidelizacion(str(usuario.id), precio_final)
+    await aplicar_cashback(str(usuario.id), precio_final)
+    await procesar_comision_referido(str(usuario.id), precio_final)
+    await procesar_comision_vendedor(str(ctx.author.id), precio_final)
+    await actualizar_jackpot(precio_final)
+    
+    # Notificar al comprador por DM
+    await enviar_dm(str(usuario.id), "🎟️ Boleto comprado", 
+                    f"Has comprado el boleto #{numero} por ${precio_final} VP$\n"
+                    f"Descuento aplicado: {descuento}%")
+    
+    # Notificar al vendedor por DM
+    await enviar_dm(str(ctx.author.id), "💰 Venta realizada", 
+                    f"Has vendido el boleto #{numero} a {usuario.name} por ${precio_final} VP$\n"
+                    f"Comisión: {COMISION_VENDEDOR}%")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Venta realizada. Revisa tu DM."))
 
 @bot.command(name="venderrandom")
 async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
@@ -1348,15 +1671,25 @@ async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
         balance = result[0] if result else 0
     
     precio_boleto = rifa_activa['precio_boleto']
-    precio_total = precio_boleto * cantidad
     descuento = await obtener_descuento_usuario(str(usuario.id))
+    
+    # Aplicar evento 2x1
+    global evento_2x1
+    boletos_a_pagar = cantidad
+    boletos_a_recibir = cantidad
+    
+    if evento_2x1:
+        boletos_a_pagar = cantidad // 2 + (cantidad % 2)
+        boletos_a_recibir = cantidad
+    
+    precio_total = precio_boleto * boletos_a_pagar
     precio_final = int(precio_total * (100 - descuento) / 100)
     
     if balance < precio_final:
         await ctx.send(embed=embeds.crear_embed_error(f"Usuario necesita {precio_final} VP$"))
         return
     
-    seleccionados = random.sample(disponibles, cantidad)
+    seleccionados = random.sample(disponibles, boletos_a_recibir)
     comprados = []
     
     async with aiosqlite.connect('data/rifas.db') as db:
@@ -1373,9 +1706,27 @@ async def cmd_vender_random(ctx, usuario: discord.Member, cantidad: int = 1):
         
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(
-        f"Venta a {usuario.name}\nNúmeros: {', '.join(map(str, comprados))}\nTotal: ${precio_final}"
-    ))
+    # Actualizar sistemas
+    await actualizar_fidelizacion(str(usuario.id), precio_final)
+    cashback = await aplicar_cashback(str(usuario.id), precio_final)
+    await procesar_comision_referido(str(usuario.id), precio_final)
+    await procesar_comision_vendedor(str(ctx.author.id), precio_final)
+    await actualizar_jackpot(precio_final)
+    
+    # Notificar al comprador por DM
+    await enviar_dm(str(usuario.id), "🎟️ Compra realizada", 
+                    f"Has comprado {len(comprados)} boletos: {', '.join(map(str, comprados))}\n"
+                    f"Total: ${precio_final}\n"
+                    f"Descuento: {descuento}%\n"
+                    f"Cashback acumulado: ${cashback}")
+    
+    # Notificar al vendedor por DM
+    await enviar_dm(str(ctx.author.id), "💰 Venta realizada", 
+                    f"Has vendido {len(comprados)} boletos a {usuario.name} por ${precio_final}\n"
+                    f"Comisión: {COMISION_VENDEDOR}%")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Venta realizada. Revisa tu DM."))
 
 @bot.command(name="misventas")
 async def cmd_mis_ventas(ctx):
@@ -1405,7 +1756,7 @@ async def cmd_mis_ventas(ctx):
     embed = discord.Embed(title="💰 Tus ventas", color=config.COLORS['primary'])
     
     if vendedor and vendedor[0] > 0:
-        embed.add_field(name="Comisiones", value=f"**${vendedor[0]}**", inline=False)
+        embed.add_field(name="Comisiones pendientes", value=f"**${vendedor[0]}**", inline=False)
     
     if ventas:
         for v in ventas[:5]:
@@ -1438,15 +1789,10 @@ async def cmd_lista_boletos(ctx):
     embed = discord.Embed(
         title=f"📋 Boletos - {rifa_activa['nombre']}",
         description=f"**Total:** {rifa_activa['total_boletos']}\n"
-                    f"**Disponibles:** {len(disponibles)}\n"
-                    f"**Vendidos:** {vendidos}",
+                    f"**Vendidos:** {vendidos}\n"
+                    f"**Disponibles:** {len(disponibles)}",
         color=config.COLORS['info']
     )
-    
-    if disponibles:
-        muestra = random.sample(disponibles, min(10, len(disponibles)))
-        muestra.sort()
-        embed.add_field(name="Ejemplos disponibles", value=f"`{', '.join(map(str, muestra))}`", inline=False)
     
     await ctx.send(embed=embed)
 
@@ -1455,14 +1801,39 @@ async def cmd_lista_boletos(ctx):
 # ============================================
 
 @bot.command(name="crearifa")
-async def cmd_crear_rifa(ctx, nombre: str, premio: str, valor: int, precio: int, total: int):
+async def cmd_crear_rifa(ctx, premio: str, precio: int, total: int):
     if not await check_admin(ctx):
         return
     
-    rifa_id = await bot.db.crear_rifa(nombre, premio, valor, precio, total)
+    nombre = f"Rifa {datetime.now().strftime('%d/%m')}"
+    rifa_id = await bot.db.crear_rifa(nombre, premio, precio, precio, total)
     
-    embed = embeds.crear_embed_exito(f"✅ Rifa creada ID: {rifa_id}")
+    # Resetear ranking de la rifa
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('DELETE FROM ranking_rifa')
+        await db.commit()
+    
+    embed = embeds.crear_embed_exito(f"✅ Rifa creada ID: {rifa_id}\nPremio: {premio}\nPrecio: ${precio}\nTotal: {total} boletos")
     await ctx.send(embed=embed)
+
+@bot.command(name="rankingreset")
+async def cmd_ranking_reset(ctx):
+    if not await check_admin(ctx):
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa activa"))
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            DELETE FROM ranking_rifa WHERE rifa_id = ?
+        ''', (rifa_activa['id'],))
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("Ranking reseteado"))
 
 @bot.command(name="aumentarnumeros")
 async def cmd_aumentar_numeros(ctx, cantidad: int):
@@ -1485,6 +1856,7 @@ async def cmd_aumentar_numeros(ctx, cantidad: int):
         ''', (nuevo_total, rifa['id']))
         await db.commit()
     
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito(f"✅ Total: {nuevo_total} boletos"))
 
 @bot.command(name="cerrarifa")
@@ -1498,6 +1870,21 @@ async def cmd_cerrar_rifa(ctx):
         return
     
     await bot.db.cerrar_rifa(rifa['id'])
+    
+    # Agregar puntos de revancha a los perdedores
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT comprador_id, COUNT(*) as boletos
+            FROM boletos
+            WHERE rifa_id = ?
+            GROUP BY comprador_id
+        ''', (rifa['id'],))
+        compradores = await cursor.fetchall()
+        
+        for comprador in compradores:
+            await agregar_puntos_revancha(comprador[0], comprador[1])
+    
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito("✅ Rifa cerrada"))
 
 @bot.command(name="iniciarsorteo")
@@ -1554,6 +1941,12 @@ async def cmd_iniciar_sorteo(ctx, ganadores: int = 1):
     embed = discord.Embed(title="🎉 Ganadores", color=config.COLORS['success'])
     for i, b in enumerate(ganadores_sel, 1):
         embed.add_field(name=f"#{i}", value=f"#{b['numero']} - {b['comprador_nick']}", inline=False)
+        
+        # Notificar al ganador por DM
+        await enviar_dm(b['comprador_id'], "🎉 ¡FELICIDADES! GANASTE", 
+                        f"Has ganado la rifa {rifa['nombre']} con el boleto #{b['numero']}\n"
+                        f"Premio: {rifa['premio']}\n"
+                        f"Contacta a los administradores para reclamar tu premio.")
     
     await ctx.send(embed=embed)
     sorteo_en_curso = False
@@ -1571,6 +1964,7 @@ async def cmd_cancelar_sorteo(ctx):
     
     sorteo_cancelado = True
     sorteo_en_curso = False
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito("Sorteo cancelado"))
 
 @bot.command(name="finalizarrifa")
@@ -1618,11 +2012,17 @@ async def cmd_finalizar_rifa(ctx, id_rifa: int = None, ganadores: int = 1):
     
     for i, b in enumerate(ganadores_sel, 1):
         embed.add_field(name=f"Ganador {i}", value=f"#{b['numero']} - {b['comprador_nick']}", inline=False)
+        
+        # Notificar al ganador por DM
+        await enviar_dm(b['comprador_id'], "🎉 ¡FELICIDADES! GANASTE", 
+                        f"Has ganado la rifa {rifa['nombre']} (ID: {id_rifa}) con el boleto #{b['numero']}\n"
+                        f"Premio: {rifa['premio']}\n"
+                        f"Contacta a los administradores para reclamar tu premio.")
     
     await ctx.send(embed=embed)
 
 @bot.command(name="vendedoradd")
-async def cmd_vendedor_add(ctx, usuario: discord.Member, comision: int = 15):
+async def cmd_vendedor_add(ctx, usuario: discord.Member, comision: int = 10):
     if not await check_admin(ctx):
         return
     
@@ -1642,10 +2042,26 @@ async def cmd_vendedor_add(ctx, usuario: discord.Member, comision: int = 15):
     except:
         pass
     
+    await ctx.message.delete()
     await ctx.send(embed=embeds.crear_embed_exito(f"{usuario.name} es vendedor ({comision}%)"))
 
-@bot.command(name="pagarcomisiones")
-async def cmd_pagar_comisiones(ctx):
+@bot.command(name="setcomision")
+async def cmd_set_comision(ctx, porcentaje: int):
+    if not await check_admin(ctx):
+        return
+    
+    if porcentaje < 0 or porcentaje > 30:
+        await ctx.send(embed=embeds.crear_embed_error("0-30%"))
+        return
+    
+    global COMISION_VENDEDOR
+    COMISION_VENDEDOR = porcentaje
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Comisión vendedores: {porcentaje}%"))
+
+@bot.command(name="vercomisiones")
+async def cmd_ver_comisiones(ctx):
     if not await check_admin(ctx):
         return
     
@@ -1657,38 +2073,66 @@ async def cmd_pagar_comisiones(ctx):
         vendedores = await cursor.fetchall()
     
     if not vendedores:
-        await ctx.send(embed=embeds.crear_embed_info("Info", "No hay comisiones"))
+        await ctx.send(embed=embeds.crear_embed_info("Info", "No hay comisiones pendientes"))
         return
     
-    embed = discord.Embed(title="💰 Comisiones", color=config.COLORS['primary'])
+    embed = discord.Embed(title="💰 Comisiones pendientes", color=config.COLORS['primary'])
     for v in vendedores:
         embed.add_field(name=v['nombre'], value=f"${v['comisiones_pendientes']}", inline=True)
     
     await ctx.send(embed=embed)
 
-@bot.command(name="confirmarpago")
-async def cmd_confirmar_pago(ctx, vendedor: discord.Member):
+@bot.command(name="pagarcomisiones")
+async def cmd_pagar_comisiones(ctx):
     if not await check_admin(ctx):
         return
     
+    await ctx.send("💰 Procesando pagos de comisiones...")
+    
     async with aiosqlite.connect('data/rifas.db') as db:
+        db.row_factory = aiosqlite.Row
         cursor = await db.execute('''
-            SELECT comisiones_pendientes FROM vendedores WHERE discord_id = ?
-        ''', (str(vendedor.id),))
-        result = await cursor.fetchone()
+            SELECT discord_id, nombre, comisiones_pendientes FROM vendedores WHERE comisiones_pendientes > 0
+        ''')
+        vendedores = await cursor.fetchall()
         
-        if not result or result[0] == 0:
-            await ctx.send(embed=embeds.crear_embed_error("Sin comisiones"))
+        if not vendedores:
+            await ctx.send(embed=embeds.crear_embed_error("No hay comisiones pendientes"))
             return
         
-        monto = result[0]
+        total_pagado = 0
+        for v in vendedores:
+            monto = v['comisiones_pendientes']
+            
+            # Acreditar al balance del vendedor
+            await db.execute('''
+                INSERT INTO usuarios_balance (discord_id, nombre, balance)
+                VALUES (?, ?, ?)
+                ON CONFLICT(discord_id) DO UPDATE SET
+                    balance = balance + ?
+            ''', (v['discord_id'], v['nombre'], monto, monto))
+            
+            # Registrar transacción
+            await db.execute('''
+                INSERT INTO transacciones (tipo, monto, destino_id, descripcion)
+                VALUES ('comision', ?, ?, ?)
+            ''', (monto, v['discord_id'], f"Pago de comisiones"))
+            
+            # Resetear comisiones pendientes
+            await db.execute('''
+                UPDATE vendedores SET comisiones_pendientes = 0, comisiones_pagadas = comisiones_pagadas + ?
+                WHERE discord_id = ?
+            ''', (monto, v['discord_id']))
+            
+            total_pagado += monto
+            
+            # Notificar al vendedor por DM
+            await enviar_dm(v['discord_id'], "💰 Comisiones pagadas", f"Has recibido ${monto} VP$ por tus ventas")
         
-        await db.execute('''
-            UPDATE vendedores SET comisiones_pendientes = 0 WHERE discord_id = ?
-        ''', (str(vendedor.id),))
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Pagados ${monto} a {vendedor.name}"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Pagadas ${total_pagado} VP$ en comisiones a {len(vendedores)} vendedores"))
 
 @bot.command(name="reporte")
 async def cmd_reporte(ctx):
@@ -1712,6 +2156,31 @@ async def cmd_reporte(ctx):
     
     await ctx.send(embed=embed)
 
+@bot.command(name="alertar")
+async def cmd_alertar(ctx, *, mensaje: str):
+    if not await check_admin(ctx):
+        return
+    
+    embed = discord.Embed(
+        title="📢 ALERTA DE RIFAS",
+        description=mensaje,
+        color=config.COLORS['primary']
+    )
+    embed.set_footer(text="VP Rifas • Responde en el canal de rifas")
+    
+    enviados = 0
+    for member in ctx.guild.members:
+        if not member.bot:
+            try:
+                await member.send(embed=embed)
+                enviados += 1
+                await asyncio.sleep(0.5)
+            except:
+                pass
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Mensaje enviado a {enviados} miembros"))
+
 # ============================================
 # COMANDOS DE CEO
 # ============================================
@@ -1732,9 +2201,19 @@ async def cmd_acreditarvp(ctx, usuario: discord.Member, cantidad: int):
             ON CONFLICT(discord_id) DO UPDATE SET
                 balance = balance + ?
         ''', (str(usuario.id), usuario.name, cantidad, cantidad))
+        
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, destino_id, descripcion)
+            VALUES ('acreditar', ?, ?, ?)
+        ''', (cantidad, str(usuario.id), f"Acreditación por {ctx.author.name}"))
+        
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"{cantidad} VP$ a {usuario.name}"))
+    # Notificar al usuario por DM
+    await enviar_dm(str(usuario.id), "💰 Acreditación de VP$", f"Se te han acreditado ${cantidad} VP$ en tu balance")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Acreditados ${cantidad} VP$ a {usuario.name}"))
 
 @bot.command(name="retirarvp")
 async def cmd_retirarvp(ctx, usuario: discord.Member, cantidad: int):
@@ -1758,9 +2237,19 @@ async def cmd_retirarvp(ctx, usuario: discord.Member, cantidad: int):
         await db.execute('''
             UPDATE usuarios_balance SET balance = balance - ? WHERE discord_id = ?
         ''', (cantidad, str(usuario.id)))
+        
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, origen_id, descripcion)
+            VALUES ('retirar', ?, ?, ?)
+        ''', (cantidad, str(usuario.id), f"Retiro por {ctx.author.name}"))
+        
         await db.commit()
     
-    await ctx.send(embed=embeds.crear_embed_exito(f"Retirados {cantidad} VP$ de {usuario.name}"))
+    # Notificar al usuario por DM
+    await enviar_dm(str(usuario.id), "💰 Retiro de VP$", f"Se te han retirado ${cantidad} VP$ de tu balance")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Retirados ${cantidad} VP$ de {usuario.name}"))
 
 @bot.command(name="estadisticas")
 async def cmd_estadisticas(ctx):
@@ -1782,13 +2271,21 @@ async def cmd_estadisticas(ctx):
         
         cursor = await db.execute('SELECT SUM(balance) FROM usuarios_balance')
         total_vp = (await cursor.fetchone())[0] or 0
+        
+        cursor = await db.execute('SELECT SUM(cashback_acumulado) FROM cashback')
+        total_cashback = (await cursor.fetchone())[0] or 0
+        
+        cursor = await db.execute('SELECT SUM(comisiones_pendientes) FROM vendedores')
+        total_comisiones = (await cursor.fetchone())[0] or 0
     
-    embed = discord.Embed(title="📊 Estadísticas", color=config.COLORS['primary'])
-    embed.add_field(name="🎟️ Rifas", value=str(total_rifas), inline=True)
-    embed.add_field(name="🎲 Boletos", value=str(total_boletos), inline=True)
-    embed.add_field(name="💰 Recaudado", value=f"${total_recaudado}", inline=True)
-    embed.add_field(name="👥 Clientes", value=str(total_clientes), inline=True)
-    embed.add_field(name="💵 VP$", value=f"{total_vp}", inline=True)
+    embed = discord.Embed(title="📊 ESTADÍSTICAS GLOBALES", color=config.COLORS['primary'])
+    embed.add_field(name="🎟️ Total rifas", value=f"**{total_rifas}**", inline=True)
+    embed.add_field(name="🎲 Boletos vendidos", value=f"**{total_boletos}**", inline=True)
+    embed.add_field(name="💰 Total recaudado", value=f"**${total_recaudado}**", inline=True)
+    embed.add_field(name="👥 Clientes registrados", value=f"**{total_clientes}**", inline=True)
+    embed.add_field(name="💵 VP$ en circulación", value=f"**${total_vp}**", inline=True)
+    embed.add_field(name="💸 Cashback pendiente", value=f"**${total_cashback}**", inline=True)
+    embed.add_field(name="🏦 Comisiones pendientes", value=f"**${total_comisiones}**", inline=True)
     
     await ctx.send(embed=embed)
 
@@ -1801,12 +2298,16 @@ async def cmd_auditoria(ctx):
         db.row_factory = aiosqlite.Row
         cursor = await db.execute('''
             SELECT tipo, monto, descripcion, fecha FROM transacciones
-            ORDER BY fecha DESC LIMIT 10
+            ORDER BY fecha DESC LIMIT 20
         ''')
         transacciones = await cursor.fetchall()
     
-    embed = discord.Embed(title="📋 Auditoría", color=config.COLORS['primary'])
-    for t in transacciones:
+    if not transacciones:
+        await ctx.send(embed=embeds.crear_embed_info("Sin datos", "No hay transacciones registradas"))
+        return
+    
+    embed = discord.Embed(title="📋 AUDITORÍA", color=config.COLORS['primary'])
+    for t in transacciones[:15]:
         embed.add_field(
             name=f"{t['fecha'][:10]} - {t['tipo']}",
             value=f"${t['monto']} - {t['descripcion']}",
@@ -1840,7 +2341,8 @@ async def cmd_exportar(ctx):
             writer.writerow([b['numero'], b['rifa'], b['comprador_nick'], b['precio_pagado'], b['fecha_compra']])
     
     await ctx.author.send(file=discord.File(archivo))
-    await ctx.send(embed=embeds.crear_embed_exito("Datos exportados"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("✅ Datos exportados. Revisa tu DM."))
 
 @bot.command(name="backup")
 async def cmd_backup(ctx):
@@ -1852,7 +2354,8 @@ async def cmd_backup(ctx):
     shutil.copy2('data/rifas.db', backup)
     
     await ctx.author.send(file=discord.File(backup))
-    await ctx.send(embed=embeds.crear_embed_exito("Backup creado"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("✅ Backup creado. Revisa tu DM."))
 
 @bot.command(name="resetallsistema")
 async def cmd_reset_all_sistema(ctx):
@@ -1862,8 +2365,9 @@ async def cmd_reset_all_sistema(ctx):
         return
     
     embed = discord.Embed(
-        title="⚠️ Reinicio total",
-        description="Esto borrará TODOS los datos\nEscribe `!confirmarreset` en 30s",
+        title="⚠️ REINICIO TOTAL DEL SISTEMA",
+        description="Esto borrará TODOS los datos.\n"
+                    "Escribe `!confirmarreset` en los próximos 30 segundos.",
         color=config.COLORS['error']
     )
     await ctx.send(embed=embed)
@@ -1881,13 +2385,15 @@ async def cmd_confirmar_reset(ctx):
         return
     
     if not reset_pending or reset_pending.get('usuario_id') != ctx.author.id:
-        await ctx.send(embed=embeds.crear_embed_error("Sin solicitud"))
+        await ctx.send(embed=embeds.crear_embed_error("Sin solicitud pendiente"))
         return
     
     if datetime.now().timestamp() - reset_pending['timestamp'] > 30:
         reset_pending = None
         await ctx.send(embed=embeds.crear_embed_error("Tiempo expirado"))
         return
+    
+    await ctx.send("🔄 **REINICIANDO SISTEMA...**")
     
     async with aiosqlite.connect('data/rifas.db') as db:
         await db.execute("DELETE FROM transacciones")
@@ -1900,10 +2406,478 @@ async def cmd_confirmar_reset(ctx):
         await db.execute("DELETE FROM referidos_relaciones")
         await db.execute("DELETE FROM fidelizacion")
         await db.execute("DELETE FROM cashback")
+        await db.execute("DELETE FROM codigos_promocionales")
+        await db.execute("DELETE FROM codigos_canjeados")
+        await db.execute("DELETE FROM puntos_revancha")
+        await db.execute("DELETE FROM sqlite_sequence")
         await db.commit()
     
     reset_pending = None
-    await ctx.send(embed=embeds.crear_embed_exito("Sistema reiniciado"))
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("✅ Sistema reiniciado correctamente"))
+
+# ============================================
+# COMANDOS DE PROMOCIONES
+# ============================================
+
+@bot.command(name="crearcodigo")
+async def cmd_crear_codigo(ctx, codigo: str, recompensa: int):
+    if not await check_ceo(ctx):
+        return
+    
+    codigo = codigo.lower()
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT * FROM codigos_promocionales WHERE codigo = ?
+        ''', (codigo,))
+        existe = await cursor.fetchone()
+        
+        if existe:
+            await ctx.send(embed=embeds.crear_embed_error("El código ya existe"))
+            return
+        
+        await db.execute('''
+            INSERT INTO codigos_promocionales (codigo, recompensa, creador_id)
+            VALUES (?, ?, ?)
+        ''', (codigo, recompensa, str(ctx.author.id)))
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Código `{codigo}` creado con {recompensa} VP$"))
+
+@bot.command(name="borrarcodigo")
+async def cmd_borrar_codigo(ctx, codigo: str):
+    if not await check_ceo(ctx):
+        return
+    
+    codigo = codigo.lower()
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            DELETE FROM codigos_promocionales WHERE codigo = ?
+        ''', (codigo,))
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Código `{codigo}` eliminado"))
+
+@bot.command(name="canjear")
+async def cmd_canjear(ctx, codigo: str):
+    if not await verificar_canal(ctx):
+        return
+    
+    codigo = codigo.lower()
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT recompensa FROM codigos_promocionales WHERE codigo = ? AND activo = 1
+        ''', (codigo,))
+        codigo_data = await cursor.fetchone()
+        
+        if not codigo_data:
+            await ctx.send(embed=embeds.crear_embed_error("Código inválido o expirado"))
+            return
+        
+        cursor = await db.execute('''
+            SELECT * FROM codigos_canjeados WHERE codigo = ? AND usuario_id = ?
+        ''', (codigo, str(ctx.author.id)))
+        ya_canjeado = await cursor.fetchone()
+        
+        if ya_canjeado:
+            await ctx.send(embed=embeds.crear_embed_error("Ya has canjeado este código"))
+            return
+        
+        recompensa = codigo_data[0]
+        
+        await db.execute('''
+            INSERT INTO codigos_canjeados (codigo, usuario_id)
+            VALUES (?, ?)
+        ''', (codigo, str(ctx.author.id)))
+        
+        await db.execute('''
+            INSERT INTO usuarios_balance (discord_id, nombre, balance)
+            VALUES (?, ?, ?)
+            ON CONFLICT(discord_id) DO UPDATE SET
+                balance = balance + ?
+        ''', (str(ctx.author.id), ctx.author.name, recompensa, recompensa))
+        
+        await db.commit()
+    
+    await enviar_dm(str(ctx.author.id), "🎁 Código canjeado", f"Has canjeado el código `{codigo}` y recibido ${recompensa} VP$")
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"✅ Código canjeado. Revisa tu DM."))
+
+# ============================================
+# COMANDOS DE EVENTOS
+# ============================================
+
+@bot.command(name="2x1")
+async def cmd_2x1(ctx):
+    if not await check_ceo(ctx):
+        return
+    
+    global evento_2x1
+    evento_2x1 = not evento_2x1
+    
+    estado = "ACTIVADO" if evento_2x1 else "DESACTIVADO"
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"🎉 Evento 2x1 {estado}"))
+
+@bot.command(name="cashbackdoble")
+async def cmd_cashback_doble(ctx):
+    if not await check_ceo(ctx):
+        return
+    
+    global evento_cashback_doble
+    evento_cashback_doble = not evento_cashback_doble
+    
+    estado = "ACTIVADO" if evento_cashback_doble else "DESACTIVADO"
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"🎉 Cashback doble {estado}"))
+
+@bot.command(name="oferta")
+async def cmd_oferta(ctx, porcentaje: int):
+    if not await check_ceo(ctx):
+        return
+    
+    global evento_oferta_activa, evento_oferta_porcentaje
+    
+    if porcentaje < 0 or porcentaje > 30:
+        await ctx.send(embed=embeds.crear_embed_error("0-30%"))
+        return
+    
+    evento_oferta_activa = True
+    evento_oferta_porcentaje = porcentaje
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"🎉 Oferta activada: {porcentaje}% de descuento adicional"))
+
+@bot.command(name="ofertadesactivar")
+async def cmd_oferta_desactivar(ctx):
+    if not await check_ceo(ctx):
+        return
+    
+    global evento_oferta_activa, evento_oferta_porcentaje
+    evento_oferta_activa = False
+    evento_oferta_porcentaje = 0
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("🎉 Oferta desactivada"))
+
+# ============================================
+# SISTEMA DE JACKPOT
+# ============================================
+
+@bot.command(name="jackpot")
+async def cmd_jackpot(ctx, base: int, porcentaje: int, id_rifa: int):
+    if not await check_ceo(ctx):
+        return
+    
+    global jackpot_activo, jackpot_base, jackpot_porcentaje, jackpot_rifa_id, jackpot_total
+    
+    if base <= 0 or porcentaje <= 0:
+        await ctx.send(embed=embeds.crear_embed_error("Valores deben ser positivos"))
+        return
+    
+    rifa = await bot.db.get_rifa_activa()
+    if not rifa or rifa['id'] != id_rifa:
+        await ctx.send(embed=embeds.crear_embed_error(f"Rifa con ID {id_rifa} no está activa"))
+        return
+    
+    jackpot_activo = True
+    jackpot_base = base
+    jackpot_porcentaje = porcentaje
+    jackpot_rifa_id = id_rifa
+    jackpot_total = base
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            INSERT OR REPLACE INTO jackpot (id, rifa_id, base, porcentaje, total, activo)
+            VALUES (1, ?, ?, ?, ?, 1)
+        ''', (id_rifa, base, porcentaje, base))
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"🎰 Jackpot activado!\nBase: ${base}\n{porcentaje}% de cada compra"))
+
+@bot.command(name="jackpotreset")
+async def cmd_jackpot_reset(ctx):
+    if not await check_ceo(ctx):
+        return
+    
+    global jackpot_activo, jackpot_total, jackpot_base, jackpot_porcentaje, jackpot_rifa_id
+    
+    jackpot_activo = False
+    jackpot_total = 0
+    jackpot_base = 0
+    jackpot_porcentaje = 0
+    jackpot_rifa_id = 0
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('UPDATE jackpot SET activo = 0 WHERE id = 1')
+        await db.commit()
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito("🎰 Jackpot resetado"))
+
+@bot.command(name="jackpotsortear")
+async def cmd_jackpot_sortear(ctx, ganadores: int = 1):
+    if not await check_ceo(ctx):
+        return
+    
+    global jackpot_activo, jackpot_total
+    
+    if not jackpot_activo or jackpot_total == 0:
+        await ctx.send(embed=embeds.crear_embed_error("No hay jackpot activo"))
+        return
+    
+    if ganadores < 1 or ganadores > 10:
+        await ctx.send(embed=embeds.crear_embed_error("1-10 ganadores"))
+        return
+    
+    rifa_activa = await bot.db.get_rifa_activa()
+    if not rifa_activa or rifa_activa['id'] != jackpot_rifa_id:
+        await ctx.send(embed=embeds.crear_embed_error("La rifa del jackpot ya no está activa"))
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT comprador_id, comprador_nick FROM boletos 
+            WHERE rifa_id = ? AND estado = 'pagado'
+        ''', (jackpot_rifa_id,))
+        boletos = await cursor.fetchall()
+    
+    if len(boletos) == 0:
+        await ctx.send(embed=embeds.crear_embed_error("No hay boletos vendidos"))
+        return
+    
+    premio_por_ganador = jackpot_total // ganadores
+    ganadores_sel = random.sample(boletos, min(ganadores, len(boletos)))
+    
+    embed = discord.Embed(
+        title="🎰 **JACKPOT SORTEADO** 🎰",
+        description=f"Premio total: **${jackpot_total}**",
+        color=config.COLORS['success']
+    )
+    
+    for i, ganador in enumerate(ganadores_sel, 1):
+        embed.add_field(
+            name=f"🏆 Ganador #{i}",
+            value=f"{ganador[1]} | ${premio_por_ganador}",
+            inline=False
+        )
+        
+        # Acreditar premio al ganador
+        async with aiosqlite.connect('data/rifas.db') as db2:
+            await db2.execute('''
+                INSERT INTO usuarios_balance (discord_id, nombre, balance)
+                VALUES (?, ?, ?)
+                ON CONFLICT(discord_id) DO UPDATE SET
+                    balance = balance + ?
+            ''', (ganador[0], ganador[1], premio_por_ganador, premio_por_ganador))
+        
+        await enviar_dm(ganador[0], "🎰 ¡GANASTE EL JACKPOT!", f"Has ganado ${premio_por_ganador} VP$ del jackpot")
+    
+    await ctx.send(embed=embed)
+    
+    # Resetear jackpot después del sorteo
+    jackpot_activo = False
+    jackpot_total = 0
+
+# ============================================
+# SISTEMA DE REVANCHA
+# ============================================
+
+@bot.command(name="mispuntos")
+async def cmd_mis_puntos(ctx):
+    if not await verificar_canal(ctx):
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT puntos FROM puntos_revancha WHERE usuario_id = ?
+        ''', (str(ctx.author.id),))
+        result = await cursor.fetchone()
+        puntos = result[0] if result else 0
+    
+    embed = discord.Embed(
+        title="🔄 Puntos de Revancha",
+        description=f"Tienes **{puntos}** puntos",
+        color=config.COLORS['primary']
+    )
+    embed.set_footer(text="¡Los puntos se acumulan por boletos perdidos!")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="puntosreset")
+async def cmd_puntos_reset(ctx, usuario: discord.Member = None):
+    if not await check_ceo(ctx):
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        if usuario:
+            await db.execute('''
+                DELETE FROM puntos_revancha WHERE usuario_id = ?
+            ''', (str(usuario.id),))
+            await ctx.send(embed=embeds.crear_embed_exito(f"Puntos de {usuario.name} reseteados"))
+        else:
+            await db.execute('DELETE FROM puntos_revancha')
+            await ctx.send(embed=embeds.crear_embed_exito("Todos los puntos de revancha reseteados"))
+        
+        await db.commit()
+    
+    await ctx.message.delete()
+
+# ============================================
+# SISTEMA DE RIFA ELIMINACIÓN
+# ============================================
+
+@bot.command(name="rifaeliminacion")
+async def cmd_rifa_eliminacion(ctx, total: int, premio: str, valor: int):
+    if not await check_admin(ctx):
+        return
+    
+    global rifa_eliminacion_activa, rifa_eliminacion_total, rifa_eliminacion_premio
+    global rifa_eliminacion_valor, rifa_eliminacion_numeros
+    
+    if total <= 0 or valor <= 0:
+        await ctx.send(embed=embeds.crear_embed_error("Valores inválidos"))
+        return
+    
+    rifa_eliminacion_activa = True
+    rifa_eliminacion_total = total
+    rifa_eliminacion_premio = premio
+    rifa_eliminacion_valor = valor
+    rifa_eliminacion_numeros = list(range(1, total + 1))
+    
+    embed = discord.Embed(
+        title="🔪 **RIFA ELIMINACIÓN INICIADA** 🔪",
+        description=f"**Premio:** {premio}\n"
+                    f"**Valor por boleto:** ${valor}\n"
+                    f"**Total de boletos:** {total}\n\n"
+                    f"¡El último número que quede GANA!",
+        color=config.COLORS['primary']
+    )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name="rifaeliminacionr")
+async def cmd_rifa_eliminacion_eliminar(ctx, numero: int):
+    if not await check_admin(ctx):
+        return
+    
+    global rifa_eliminacion_activa, rifa_eliminacion_numeros
+    
+    if not rifa_eliminacion_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa eliminación activa"))
+        return
+    
+    if numero not in rifa_eliminacion_numeros:
+        await ctx.send(embed=embeds.crear_embed_error(f"El número {numero} ya fue eliminado"))
+        return
+    
+    rifa_eliminacion_numeros.remove(numero)
+    
+    await ctx.message.delete()
+    await ctx.send(embed=embeds.crear_embed_exito(f"Número {numero} eliminado. Quedan {len(rifa_eliminacion_numeros)} números"))
+
+@bot.command(name="celiminacion")
+async def cmd_compra_eliminacion(ctx, numero: int):
+    if not await verificar_canal(ctx):
+        return
+    
+    global rifa_eliminacion_activa, rifa_eliminacion_numeros, rifa_eliminacion_valor
+    
+    if not rifa_eliminacion_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa eliminación activa"))
+        return
+    
+    if numero not in rifa_eliminacion_numeros:
+        await ctx.send(embed=embeds.crear_embed_error(f"Número {numero} no disponible"))
+        return
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        cursor = await db.execute('''
+            SELECT balance FROM usuarios_balance WHERE discord_id = ?
+        ''', (str(ctx.author.id),))
+        result = await cursor.fetchone()
+        balance = result[0] if result else 0
+    
+    if balance < rifa_eliminacion_valor:
+        await ctx.send(embed=embeds.crear_embed_error(f"Necesitas ${rifa_eliminacion_valor} VP$"))
+        return
+    
+    nuevo_balance = balance - rifa_eliminacion_valor
+    
+    async with aiosqlite.connect('data/rifas.db') as db:
+        await db.execute('''
+            UPDATE usuarios_balance SET balance = ? WHERE discord_id = ?
+        ''', (nuevo_balance, str(ctx.author.id)))
+        
+        # Registrar compra
+        await db.execute('''
+            INSERT INTO transacciones (tipo, monto, origen_id, descripcion)
+            VALUES ('eliminacion', ?, ?, ?)
+        ''', (rifa_eliminacion_valor, str(ctx.author.id), f"Compra número {numero} en rifa eliminación"))
+        
+        await db.commit()
+    
+    rifa_eliminacion_numeros.remove(numero)
+    
+    # Verificar si es el último número
+    if len(rifa_eliminacion_numeros) == 1:
+        ganador_numero = rifa_eliminacion_numeros[0]
+        
+        embed = discord.Embed(
+            title="🏆 **RIFA ELIMINACIÓN FINALIZADA** 🏆",
+            description=f"¡El número **{ganador_numero}** sobrevivió!\n"
+                        f"**Ganador:** <@{ctx.author.id}>\n"
+                        f"**Premio:** {rifa_eliminacion_premio}",
+            color=config.COLORS['success']
+        )
+        
+        await ctx.send(embed=embed)
+        
+        await enviar_dm(str(ctx.author.id), "🏆 ¡GANASTE LA RIFA ELIMINACIÓN!", 
+                        f"Has ganado la rifa eliminación con el número #{ganador_numero}\n"
+                        f"Premio: {rifa_eliminacion_premio}\n"
+                        f"Contacta a los administradores para reclamar tu premio.")
+        
+        rifa_eliminacion_activa = False
+    else:
+        await ctx.message.delete()
+        await ctx.send(embed=embeds.crear_embed_exito(
+            f"✅ Has comprado el número #{numero} por ${rifa_eliminacion_valor}\n"
+            f"Quedan {len(rifa_eliminacion_numeros)} números en juego."
+        ))
+        
+        await enviar_dm(str(ctx.author.id), "🎟️ Compra en Rifa Eliminación", 
+                        f"Has comprado el número #{numero} por ${rifa_eliminacion_valor}\n"
+                        f"Quedan {len(rifa_eliminacion_numeros)} números en juego.")
+
+@bot.command(name="beliminacion")
+async def cmd_ver_eliminacion(ctx):
+    if not await verificar_canal(ctx):
+        return
+    
+    global rifa_eliminacion_activa, rifa_eliminacion_numeros, rifa_eliminacion_total
+    
+    if not rifa_eliminacion_activa:
+        await ctx.send(embed=embeds.crear_embed_error("No hay rifa eliminación activa"))
+        return
+    
+    embed = discord.Embed(
+        title="🔪 RIFA ELIMINACIÓN",
+        description=f"**Boletos disponibles:** {len(rifa_eliminacion_numeros)}/{rifa_eliminacion_total}\n"
+                    f"**Precio por boleto:** ${rifa_eliminacion_valor}",
+        color=config.COLORS['info']
+    )
+    
+    await ctx.send(embed=embed)
 
 # ============================================
 # EJECUCIÓN
