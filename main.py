@@ -25,7 +25,7 @@ os.makedirs('backups', exist_ok=True)
 # CONFIGURACIÓN GLOBAL
 # ============================================
 
-VERSION = "4.1.0"
+VERSION = "4.2.0"
 PREFIX = "!"
 start_time = datetime.now()
 reconnect_attempts = 0
@@ -731,6 +731,7 @@ async def reiniciar_ranking_rifa(rifa_id):
 
 @bot.command(name="ayuda")
 async def cmd_ayuda(ctx):
+    """Ver todos los comandos disponibles"""
     if not await verificar_canal(ctx):
         return
     
