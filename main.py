@@ -25,7 +25,7 @@ os.makedirs('backups', exist_ok=True)
 # CONFIGURACIÓN GLOBAL
 # ============================================
 
-VERSION = "4.2.0"
+VERSION = "4.3.0"
 PREFIX = "!"
 start_time = datetime.now()
 reconnect_attempts = 0
@@ -659,12 +659,12 @@ async def reiniciar_ranking_rifa(rifa_id):
         ranking_rifa[rifa_id] = {}
 
 # ============================================
-# COMANDOS DE USUARIO
+# COMANDO DE AYUDA (CORREGIDO - SOLO !ayuda)
 # ============================================
 
 @bot.command(name="ayuda")
 async def cmd_ayuda(ctx):
-    """Ver todos los comandos disponibles"""
+    """Ver todos los comandos disponibles según tu rol"""
     if not await verificar_canal(ctx):
         return
     
@@ -780,6 +780,10 @@ async def cmd_ayuda(ctx):
     
     embed.set_footer(text="Ejemplo: !comprarrandom 3")
     await ctx.send(embed=embed)
+
+# ============================================
+# COMANDOS DE USUARIO
+# ============================================
 
 @bot.command(name="version")
 async def cmd_version(ctx):
