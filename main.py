@@ -725,7 +725,7 @@ async def cmd_ayuda(ctx):
         embed.add_field(name="💰 **VENDEDORES**", value=vendedor, inline=False)
     
     if es_director or es_ceo:
-        director = """
+        director1 = """
         `!crearifa [premio] [precio] [total]` - Crear rifa
         `!aumentarnumeros [cantidad]` - Ampliar rifa
         `!cerrarifa` - Cerrar rifa
@@ -735,21 +735,25 @@ async def cmd_ayuda(ctx):
         `!vendedoradd [@usuario] [%]` - Añadir vendedor
         `!vercomisiones` - Ver comisiones
         `!pagarcomisiones` - Pagar comisiones
+        """
+        embed.add_field(name="🎯 **DIRECTORES (1/2)**", value=director1, inline=False)
+        
+        director2 = """
         `!reporte` - Reporte de rifa
         `!balance [@usuario]` - Ver balance de usuario
         `!rankingreset` - Resetear ranking de rifa
-        `!topcomprador [id]` - Top compradores por ID de rifa
+        `!topcomprador [id]` - Top compradores por ID
         `!topgastadoresreset` - Resetear top gastadores
         `!setnivel` - Configurar niveles
         `!setcomision [%]` - Configurar comisión vendedores
         `!alertar [mensaje]` - Alerta a todos
         `!rifaeliminacion [total] [premio] [valor]` - Iniciar rifa eliminación
-        `!rifaeliminacionr` - Eliminar número de rifa eliminación
+        `!rifaeliminacionr` - Eliminar número
         """
-        embed.add_field(name="🎯 **DIRECTORES**", value=director, inline=False)
+        embed.add_field(name="🎯 **DIRECTORES (2/2)**", value=director2, inline=False)
     
     if es_ceo:
-        ceo = """
+        ceo1 = """
         `!acreditarvp [@usuario] [cantidad]` - Acreditar VP$
         `!retirarvp [@usuario] [cantidad]` - Retirar VP$
         `!setrefcomision [%]` - Configurar comisión referidos
@@ -758,6 +762,10 @@ async def cmd_ayuda(ctx):
         `!pagarcashback` - Pagar cashback
         `!resetcashback` - Resetear cashback
         `!setnivel` - Configurar niveles
+        """
+        embed.add_field(name="👑 **CEO (1/2)**", value=ceo1, inline=False)
+        
+        ceo2 = """
         `!estadisticas` - Estadísticas globales
         `!auditoria` - Ver transacciones
         `!exportar` - Exportar a CSV
@@ -765,7 +773,7 @@ async def cmd_ayuda(ctx):
         `!resetallsistema` - Reiniciar sistema
         `!version` - Versión del bot
         `!crearcodigo [codigo] [vp]` - Crear código promocional
-        `!borrarcodigo [codigo]` - Borrar código promocional
+        `!borrarcodigo [codigo]` - Borrar código
         `!2x1` - Activar/desactivar evento 2x1
         `!cashbackdoble` - Activar/desactivar cashback doble
         `!oferta [%]` - Activar oferta
@@ -776,7 +784,7 @@ async def cmd_ayuda(ctx):
         `!puntosreset` - Resetear puntos
         `!puntosreset [@usuario]` - Resetear puntos de un usuario
         """
-        embed.add_field(name="👑 **CEO**", value=ceo, inline=False)
+        embed.add_field(name="👑 **CEO (2/2)**", value=ceo2, inline=False)
     
     embed.set_footer(text="Ejemplo: !comprarrandom 3")
     await ctx.send(embed=embed)
