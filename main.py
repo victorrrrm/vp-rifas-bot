@@ -15,6 +15,14 @@ from datetime import datetime, timedelta
 import config
 from src.database.database import Database
 import src.utils.embeds as embeds
+import shutil
+import os
+
+# Copiar backup al volumen si existe
+if os.path.exists('rifas.db'):
+    os.makedirs('/app/data', exist_ok=True)
+    shutil.copy2('rifas.db', '/app/data/rifas.db')
+    print("✅ Backup restaurado al volumen")
 
 # Crear carpetas necesarias
 os.makedirs('data', exist_ok=True)
