@@ -966,7 +966,7 @@ async def cmd_procesar_vp(ctx, usuario: discord.Member):
             await ctx.send(embed=embeds.crear_embed_error(f"{usuario.name} no tiene pagos pendientes"))
             return
         
-        await db.execute('UPDATE pagos_pendientes SET estado = 'procesando' WHERE id = ?', (pago[0],))
+        await db.execute("UPDATE pagos_pendientes SET estado = 'procesando' WHERE id = ?", (pago[0],))
         await db.commit()
     
     embed = discord.Embed(
@@ -997,9 +997,7 @@ async def cmd_procesado_vp(ctx, usuario: discord.Member, cantidad: int):
                 balance = balance + ?
         ''', (str(usuario.id), usuario.name, cantidad_vp, cantidad_vp))
         
-        await db.execute('''
-            UPDATE pagos_pendientes SET estado = 'completado' WHERE usuario_id = ?
-        ''', (str(usuario.id),))
+        await db.execute("UPDATE pagos_pendientes SET estado = 'completado' WHERE usuario_id = ?", (str(usuario.id),))
         
         await db.commit()
     
