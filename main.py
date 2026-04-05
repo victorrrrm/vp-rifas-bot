@@ -1,5 +1,3 @@
-Ok, este es el código real sin errores base, olvida el anterior. 
-
 import discord
 from discord.ext import commands, tasks
 import asyncio
